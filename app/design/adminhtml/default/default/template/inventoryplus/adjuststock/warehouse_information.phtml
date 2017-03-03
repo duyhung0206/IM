@@ -2,6 +2,7 @@
 $warehouse_id = '';
 if ($adjustStockProducts = Mage::getModel('admin/session')->getData('adjuststock_product_warehouse')) {
     $warehouse_id = $adjustStockProducts['warehouse_id'];
+    $supplier_id = $adjustStockProducts['supplier_id'];
 }
 if ($this->getRequest()->getParam('id')) {
     $id = $this->getRequest()->getParam('id');
@@ -9,6 +10,7 @@ if ($this->getRequest()->getParam('id')) {
     $warehouse_id = $adjustStock->getWarehouseId();
 }
 $warehouse = Mage::getModel('inventoryplus/warehouse')->load($warehouse_id);
+$supplier = Mage::getModel('inventorypurchasing/supplier')->load($supplier_id);
 $permission = Mage::helper('inventoryplus')->getPermission($warehouse_id, 'can_adjust');
 ?>
 <?php if (isset($adjustStock) && $adjustStock->getStatus() == Magestore_Inventoryplus_Model_Adjuststock::STATUS_PROCESSING): ?>
@@ -38,6 +40,26 @@ $permission = Mage::helper('inventoryplus')->getPermission($warehouse_id, 'can_a
                 <a href="<?php echo $this->getUrl('adminhtml/inp_warehouse/edit', array('id' => $warehouse_id)) ?>" title="<?php $this->__('View warehouse') ?>">
                     <?php echo $warehouse->getWarehouseName() ?>
                 </a>
+            </div><br />
+
+            <div>
+                <label for="supplier">
+                    <strong><?php echo $this->__('Supplier') ?>:&nbsp;&nbsp;</strong>
+                </label>
+                <?php if($supplier_id == 0){?>
+                    <?php echo $this->__('All') ?>
+                <?php }?>
+                <?php if($supplier_id == -2){?>
+                    <?php echo $this->__('All supplier') ?>
+                <?php }?>
+                <?php if($supplier_id == -1){?>
+                    <?php echo $this->__('No supplier') ?>
+                <?php }?>
+                <?php if(!is_array($supplier_id, array(0,-1,-2))){?>
+                    <a href="<?php echo $this->getUrl('adminhtml/inpu_supplier/edit', array('id' => $supplier_id)) ?>" title="<?php $this->__('View supplier') ?>">
+                        <?php echo $supplier->getSupplierName() ?>
+                    </a>
+                <?php }?>
             </div><br />
             <div>
                 <?php echo $warehouse->getStreet() ?>

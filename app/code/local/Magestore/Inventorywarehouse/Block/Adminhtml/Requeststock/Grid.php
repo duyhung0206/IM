@@ -104,7 +104,9 @@ class Magestore_Inventorywarehouse_Block_Adminhtml_Requeststock_Grid extends Mag
             'type' => 'options',
             'options' => array(
                 1 => Mage::helper('inventorywarehouse')->__('Completed'),
-                2 => Mage::helper('inventorywarehouse')->__('Canceled')
+                2 => Mage::helper('inventorywarehouse')->__('Canceled'),
+                3 => Mage::helper('inventorywarehouse')->__('Pending'),
+                4 => Mage::helper('inventorywarehouse')->__('Processing')
             ),
         ));
 
@@ -152,3 +154,5 @@ class Magestore_Inventorywarehouse_Block_Adminhtml_Requeststock_Grid extends Mag
     }
 
 }
+
+?>

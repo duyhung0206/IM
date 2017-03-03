@@ -101,6 +101,7 @@ class Magestore_Inventoryplus_Adminhtml_Inp_StockController extends Magestore_In
 
     public function productsAction() {
         $warehouseId = Mage::getModel('admin/session')->getData('stock_warehouse_id');
+
         if (!isset($warehouseId) || !$warehouseId) {
             Mage::getModel('admin/session')->setData('stock_warehouse_id', 0);
         }
@@ -155,6 +156,7 @@ class Magestore_Inventoryplus_Adminhtml_Inp_StockController extends Magestore_In
             if (isset($data['stock_products'])) {
                 $warehouseProducts = array();
                 $warehouseProductsExplodes = explode('&', urldecode($data['stock_products']));
+
                 if (count($warehouseProductsExplodes) <= 900) {
                     Mage::helper('inventoryplus')->parseStr(urldecode($data['stock_products']), $warehouseProducts);
                 } else {
@@ -180,29 +182,90 @@ class Magestore_Inventoryplus_Adminhtml_Inp_StockController extends Magestore_In
                                         ->addFieldToFilter('warehouse_id', $model->getId())
                                         ->addFieldToFilter('product_id', $pId)
                                         ->setPageSize(1)->setCurPage(1)->getFirstItem();
+                        $storeId = Mage::app()->getStore()->getStoreId();
+                        $product = Mage::getModel('catalog/product')->load($pId);
+                        if (isset($codeArr['fnsku']) && $codeArr['fnsku'] == $warehouseProductsItem->getFnsku()){}
+                        else {
+                            if(trim($codeArr['fnsku']) != ''){
+                                $product->setFnsku($codeArr['fnsku']);
+                                $product->getResource()->saveAttribute($product, 'fnsku');
+                            }
+                        }
+                        if (isset($codeArr['upc']) && $codeArr['upc'] == $warehouseProductsItem->getUpc()){}
+                        else {
+                            if(trim($codeArr['upc']) != ''){
+                                $product->setUpc($codeArr['upc']);
+                                $product->getResource()->saveAttribute($product, 'upc');
+                            }
+                        }
+
                         if ($warehouseProductsItem->getId()) {
                             $countSqlOlds++;
                             if (isset($codeArr['total_qty']) && $codeArr['total_qty'] == $warehouseProductsItem->getTotalQty()) {
-                                if (isset($codeArr['product_location']) && $codeArr['product_location'] == $warehouseProductsItem->getProductLocation())
-                                    continue;
+                                if (isset($codeArr['product_location']) && $codeArr['product_location'] == $warehouseProductsItem->getProductLocation()){}
                                 else {
-                                    $warehouseProductsItem
+                                        $warehouseProductsItem
                                             ->setWarehouseId($model->getId())
                                             ->setProductLocation($codeArr['product_location'])
                                             ->save();
-                                    continue;
+                                    }
+                                if (isset($codeArr['fnsku']) && $codeArr['fnsku'] == $warehouseProductsItem->getFnsku()){}
+                                else {
+                                    if(trim($codeArr['fnsku']) != ''){
+
+                                        $warehouseProductsItem
+                                            ->setWarehouseId($model->getId())
+                                            ->setFnsku($codeArr['fnsku'])
+                                            ->save();
+                                    }
                                 }
+                                if (isset($codeArr['upc']) && $codeArr['upc'] == $warehouseProductsItem->getUpc()){}
+                                else {
+                                    if(trim($codeArr['upc']) != ''){
+                                        $warehouseProductsItem
+                                            ->setWarehouseId($model->getId())
+                                            ->setUpc($codeArr['upc'])
+                                            ->save();
+                                    }
+                                }
+                                continue;
                             }
                             if (isset($codeArr['total_qty']) && !is_numeric($codeArr['total_qty'])) {
-                                if (isset($codeArr['product_location']) && $codeArr['product_location'] == $warehouseProductsItem->getProductLocation())
-                                    continue;
+//                                if (isset($codeArr['product_location']) && $codeArr['product_location'] == $warehouseProductsItem->getProductLocation())
+//                                    continue;
+//                                else {
+//                                    $warehouseProductsItem
+//                                            ->setWarehouseId($model->getId())
+//                                            ->setProductLocation($codeArr['product_location'])
+//                                            ->save();
+//                                    continue;
+//                                }
+                                if (isset($codeArr['product_location']) && $codeArr['product_location'] == $warehouseProductsItem->getProductLocation()){}
                                 else {
-                                    $warehouseProductsItem
+                                        $warehouseProductsItem
                                             ->setWarehouseId($model->getId())
                                             ->setProductLocation($codeArr['product_location'])
                                             ->save();
-                                    continue;
                                 }
+                                if (isset($codeArr['fnsku']) && $codeArr['fnsku'] == $warehouseProductsItem->getFnsku()){}
+                                else {
+                                    if(trim($codeArr['fnsku']) != ''){
+                                        $warehouseProductsItem
+                                            ->setWarehouseId($model->getId())
+                                            ->setFnsku($codeArr['fnsku'])
+                                            ->save();
+                                    }
+                                }
+                                if (isset($codeArr['upc']) && $codeArr['upc'] == $warehouseProductsItem->getUpc()){}
+                                else {
+                                    if(trim($codeArr['upc']) != ''){
+                                        $warehouseProductsItem
+                                            ->setWarehouseId($model->getId())
+                                            ->setUpc($codeArr['upc'])
+                                            ->save();
+                                    }
+                                }
+                                continue;
                             }
                             $current_warehouse_qty = $warehouseProductsItem->getTotalQty();
                             $changeProductQtys[$pId]['old_qty'] = $current_warehouse_qty;
@@ -214,6 +277,8 @@ class Magestore_Inventoryplus_Adminhtml_Inp_StockController extends Magestore_In
                                     ->setTotalQty($codeArr['total_qty'])
                                     ->setAvailableQty($newQtyAvailable)
                                     ->setProductLocation($codeArr['product_location'])
+                                    ->setFnsku($codeArr['fnsku'])
+                                    ->setUpc($codeArr['upc'])
                                     ->save();
                             $productsHistory[$pId] = array('old' => $current_warehouse_qty, 'new' => $codeArr['total_qty']);
                             $stock_item = Mage::getModel('cataloginventory/stock_item')
@@ -229,16 +294,32 @@ class Magestore_Inventoryplus_Adminhtml_Inp_StockController extends Magestore_In
                             if ($codeArr['total_qty'] == '')
                                 $codeArr['total_qty'] = 0;
                             if (isset($codeArr['total_qty']) && !is_numeric($codeArr['total_qty'])) {
-
-                                if (isset($codeArr['product_location']) && $codeArr['product_location'] == $warehouseProductsItem->getProductLocation())
-                                    continue;
+                                if (isset($codeArr['product_location']) && $codeArr['product_location'] == $warehouseProductsItem->getProductLocation()){}
                                 else {
-                                    $warehouseProductsNew
-                                            ->setWarehouseId($model->getId())
-                                            ->setProductLocation($codeArr['product_location'])
-                                            ->save();
-                                    continue;
+                                    $warehouseProductsItem
+                                        ->setWarehouseId($model->getId())
+                                        ->setProductLocation($codeArr['product_location'])
+                                        ->save();
                                 }
+                                if (isset($codeArr['fnsku']) && $codeArr['fnsku'] == $warehouseProductsItem->getFnsku()){}
+                                else {
+                                    if(trim($codeArr['fnsku']) != ''){
+                                        $warehouseProductsItem
+                                            ->setWarehouseId($model->getId())
+                                            ->setFnsku($codeArr['fnsku'])
+                                            ->save();
+                                    }
+                                }
+                                if (isset($codeArr['upc']) && $codeArr['upc'] == $warehouseProductsItem->getUpc()){}
+                                else {
+                                    if(trim($codeArr['upc']) != ''){
+                                        $warehouseProductsItem
+                                            ->setWarehouseId($model->getId())
+                                            ->setUpc($codeArr['upc'])
+                                            ->save();
+                                    }
+                                }
+                                continue;
                             }
                             $warehouseProductsNew
                                     ->setWarehouseId($model->getId())
@@ -246,6 +327,8 @@ class Magestore_Inventoryplus_Adminhtml_Inp_StockController extends Magestore_In
                                     ->setTotalQty($codeArr['total_qty'])
                                     ->setAvailableQty($codeArr['total_qty'])
                                     ->setProductLocation($codeArr['product_location'])
+                                    ->setFnsku($codeArr['fnsku'])
+                                    ->setUpc($codeArr['upc'])
                                     ->save();
 
                             $stock_item = Mage::getModel('cataloginventory/stock_item')
@@ -459,7 +542,9 @@ class Magestore_Inventoryplus_Adminhtml_Inp_StockController extends Magestore_In
 
     public function changewarehouseAction() {
         $warehouseId = $this->getRequest()->getParam('warehouse_id');
+        $supplierId = $this->getRequest()->getParam('supplier_id');
         Mage::getModel('admin/session')->setData('stock_warehouse_id', $warehouseId);
+        Mage::getModel('admin/session')->setData('stock_supplier_id', $supplierId);
         $storesString = "";
         $result = array();
         $stores = Mage::getModel('core/store_group')

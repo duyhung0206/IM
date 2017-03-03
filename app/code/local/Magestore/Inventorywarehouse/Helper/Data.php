@@ -182,6 +182,8 @@ class Magestore_Inventorywarehouse_Helper_Data extends Magestore_Inventoryplus_H
             4 => $this->__('Send stock to Supplier for Return Order'),
             5 => $this->__('Send stock to Customer for Shipment'),
             6 => $this->__('Receive stock from Customer Refund'),
+            7 => $this->__('Send requeststock(Send) from another Warehouse or other source'),
+            8 => $this->__('Send requeststock(Receive) from another Warehouse or other source'),
         );
     }
 

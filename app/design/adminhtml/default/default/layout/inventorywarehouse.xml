@@ -120,13 +120,54 @@
             </block>
         </block>
     </adminhtml_inw_requeststock_products>
+
+    <!--Edit by hades-->
+    <adminhtml_inw_requeststock_productsdelivery>
+        <block type="core/text_list" name="root">
+            <block type="inventorywarehouse/adminhtml_requeststock_edit_tab_productsdelivery" name="requeststock.edit.tab.productsdelivery"/>
+                <!--<action method="initSerializerBlock">-->
+                    <!--<grid_block_name>requeststock.edit.tab.products</grid_block_name>-->
+                    <!--<data_callback>getSelectedProducts</data_callback>-->
+                    <!--<hidden_input_name>requeststock_products</hidden_input_name>-->
+                    <!--<reload_param_name>requeststock_products</reload_param_name>-->
+                <!--</action>-->
+                <!--<action method="addColumnInputName">-->
+                    <!--<input_name>qty_request</input_name>-->
+                <!--</action>-->
+            <!--</block>-->
+        </block>
+    </adminhtml_inw_requeststock_productsdelivery>
+    <adminhtml_inw_requeststock_newdelivery>
+        <update handle="adminhtml_inventoryplus_one_tab"/>
+        <!--<reference name="content">-->
+            <!--<block type="inventorywarehouse/adminhtml_requeststock_editdelivery" name="requeststock.editdelivery"/>-->
+        <!--</reference>-->
+    </adminhtml_inw_requeststock_newdelivery>
+    <adminhtml_inw_requeststock_preparedelivery>
+        <block type="core/text_list" name="root">
+            <block type="inventorywarehouse/adminhtml_requeststock_editdelivery_tab_delivery" name="inventorywarehouse.requeststock.edit.tab.preparedelivery"/>
+            <block type="adminhtml/widget_grid_serializer" name="grid_serializer">
+                <action method="initSerializerBlock">
+                    <grid_block_name>inventorywarehouse.requeststock.edit.tab.preparedelivery</grid_block_name>
+                    <data_callback>getSelectedProducts</data_callback>
+                    <hidden_input_name>product_delivery</hidden_input_name>
+                    <reload_param_name>in_products</reload_param_name>
+                </action>
+                <action method="addColumnInputName">
+                    <input_name>qty_delivery</input_name>
+                </action>
+            </block>
+        </block>
+    </adminhtml_inw_requeststock_preparedelivery>
+    <!--End edit by hades-->
     <adminhtml_inw_requeststock_productsgrid>
         <block type="core/text_list" name="root">
             <block type="inventorywarehouse/adminhtml_requeststock_edit_tab_products" name="requeststock.edit.tab.products"/>
         </block>
     </adminhtml_inw_requeststock_productsgrid>
     <adminhtml_inw_requeststock_edit>
-        <update handle="adminhtml_inventoryplus_one_tab" />
+        <update handle="adminhtml_inventoryplus_layout" />
+        <!--<update handle="adminhtml_inventoryplus_one_tab" />-->
     </adminhtml_inw_requeststock_edit>
 
     <adminhtml_sales_order_creditmemo_updateqty>

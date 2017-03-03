@@ -23,7 +23,7 @@
 <config>    
     <modules>
         <Magestore_Inventoryplus>
-            <version>0.1.4</version>
+            <version>0.1.6</version>
         </Magestore_Inventoryplus>
     </modules>
     <frontend>

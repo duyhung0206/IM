@@ -9,22 +9,57 @@
         </button>
     </p>
 </div>
-<?php $warehouses = Mage::helper('inventorywarehouse/adjuststock')->getWarehouseByAdmin() ?>
+<?php $warehouses = Mage::helper('inventorywarehouse/adjuststock')->getWarehouseByAdmin();?>
+<?php if(Mage::app()->getRequest()->getParam('warehouse_id')){
+    $warehouse_id = Mage::app()->getRequest()->getParam('warehouse_id');
+    foreach ($warehouses as $warehouse){
+        if($warehouse->getWarehouseId() == $warehouse_id){
+            $onewarehouse = $warehouse;
+            break;
+        }
+    }
+} ?>
+<?php $suppliers = Mage::getModel('inventorypurchasing/supplier')->getCollection();?>
 <?php if(count($warehouses)): ?>
     <form enctype="multipart/form-data" method="post" action="<?php echo $this->getUrl('adminhtml/inp_adjuststock/prepare') ?>" id="edit_form">
         <div class="entry-edit">
             <div id="adjuststock_form" class="fieldset ">
                 <input name="form_key" type="hidden" value="<?php echo $this->getFormKey() ?>" id="form_key"/>
+                <?php if(Mage::app()->getRequest()->getParam('warehouse_id')){?>
+                    <div>
+                        <label for="warehouse">
+                            <?php echo $this->__('Warehouse') ?>:&nbsp;&nbsp;
+                        </label>
+                        <select name="warehouse_id">
+                                <option value="<?php echo $onewarehouse->getId() ?>"><?php echo $onewarehouse->getWarehouseName() ?></option>
+                        </select>
+                    </div><br />
+                <?php }else{?>
+                    <div>
+                        <label for="warehouse">
+                            <?php echo $this->__('Please select a Warehouse') ?>:&nbsp;&nbsp;
+                        </label>
+                        <select name="warehouse_id">
+                            <?php foreach($warehouses as $warehouse): ?>
+                                <option value="<?php echo $warehouse->getId() ?>"><?php echo $warehouse->getWarehouseName() ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div><br />
+                <?php } ?>
+
                 <div>
-                    <label for="warehouse">
-                        <?php echo $this->__('Please select a Warehouse to adjust stock') ?>:&nbsp;&nbsp;
+                    <label for="supplier">
+                        <?php echo $this->__('Please select a Supplier') ?>:&nbsp;&nbsp;
                     </label>
-                    <select name="warehouse_id">
-                        <?php foreach($warehouses as $warehouse): ?>
-                            <option value="<?php echo $warehouse->getId() ?>"><?php echo $warehouse->getWarehouseName() ?></option>
-                        <?php endforeach; ?>                        
+                    <select name="supplier_id">
+                        <option value="0"><?php echo $this->__('All') ?></option>
+                        <option value="-1"><?php echo $this->__('No supplier') ?></option>
+                        <option value="-2"><?php echo $this->__('All supplier') ?></option>
+                        <?php foreach($suppliers as $supplier): ?>
+                            <option value="<?php echo $supplier->getId() ?>"><?php echo $supplier->getSupplierName() ?></option>
+                        <?php endforeach; ?>
                     </select>
-                </div><br />                 
+                </div><br />
                 <div>
                     <button style="" type="submit" class="scalable task" id="Upload">
                         <span><?php echo $this->__('Continue') ?></span>

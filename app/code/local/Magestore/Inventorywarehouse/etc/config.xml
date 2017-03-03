@@ -23,7 +23,7 @@
 <config>
     <modules>
         <Magestore_Inventorywarehouse>
-            <version>0.1.2</version>
+            <version>0.1.4</version>
         </Magestore_Inventorywarehouse>
     </modules>
     <frontend>
@@ -216,6 +216,9 @@
             <inventorywarehouse_mysql4>
                 <class>Magestore_Inventorywarehouse_Model_Mysql4</class>
                 <entities>
+                    <requeststockdelivery>
+                        <table>erp_inventory_warehouse_requeststock_product_delivery</table>
+                    </requeststockdelivery>
                     <sendstock>
                         <table>erp_inventory_warehouse_sendstock</table>
                     </sendstock>

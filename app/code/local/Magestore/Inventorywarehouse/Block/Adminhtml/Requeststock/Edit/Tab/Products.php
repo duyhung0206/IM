@@ -79,6 +79,7 @@ class Magestore_Inventorywarehouse_Block_Adminhtml_Requeststock_Edit_Tab_Product
             } else {
                 $id = $this->getRequest()->getParam('id');
                 $collection->joinField('qty', 'inventorywarehouse/requeststock_product', 'qty', 'product_id=entity_id', "{{table}}.warehouse_requeststock_id=$id", 'inner');
+                $collection->joinField('total_delivery', 'inventorywarehouse/requeststock_product', 'total_delivery', 'product_id=entity_id', "{{table}}.warehouse_requeststock_id=$id", 'inner');
             }
         }
 		if(Mage::helper('core')->isModuleEnabled('Magestore_Inventorybarcode')){
@@ -156,9 +157,16 @@ class Magestore_Inventorywarehouse_Block_Adminhtml_Requeststock_Edit_Tab_Product
         ));
         if ($id) {
             $this->addColumn('qty_request', array(
-                'header' => Mage::helper('catalog')->__('Requesting Qty'),
+                'header' => Mage::helper('catalog')->__('Qty Request'),
                 'width' => '80px',
                 'index' => 'qty',
+                'type' => 'number',
+                'editable' => $editable
+            ));
+            $this->addColumn('total_delivery', array(
+                'header' => Mage::helper('catalog')->__('Total delivery'),
+                'width' => '80px',
+                'index' => 'total_delivery',
                 'type' => 'number',
                 'editable' => $editable
             ));

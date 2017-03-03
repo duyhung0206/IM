@@ -9,8 +9,24 @@
 class Magestore_Inventoryplus_IndexController extends Mage_Core_Controller_Front_Action {
 
     public function indexAction() {
-        $resource = Mage::getResourceModel('inventoryplus/warehouse_product');
-        $result = $resource->getCatalogQty(905);
-        var_dump($result);
+        $requeststock = Mage::getModel('inventorywarehouse/requeststock')->load(7);
+        $requeststockProducts = Mage::getModel('inventorywarehouse/requeststock_product')->getCollection()
+            ->addFieldToFilter('warehouse_requeststock_id', 7);
+
+        $complete = true;
+        $processing = false;
+        Zend_Debug::dump($requeststockProducts->getData());
+        foreach ($requeststockProducts as $requeststockProduct){
+            if($requeststockProduct->getQty() != $requeststockProduct->getTotalDelivery())
+                $complete = false;
+            if($requeststockProduct->getTotalDelivery() != 0)
+                $processing = true;
+        }
+
+        if($processing)
+            $requeststock->setStatus(4)->save();
+        if ($complete)
+            $requeststock->setStatus(1)->save();
+        echo $requeststock->getStatus();
     }
 }

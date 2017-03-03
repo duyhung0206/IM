@@ -111,7 +111,7 @@ class Magestore_Inventoryplus_Block_Adminhtml_Warehouse_Edit extends Mage_Adminh
         if (Mage::helper('inventoryplus/warehouse')->isAllowAction('adjust', $warehouse)) {
             $stockActions['adjust_stock'] = array('params' => array(
                     'label' => Mage::helper('inventoryplus')->__('Adjust Stock'),
-                    'onclick' => 'location.href=\'' . $this->getUrl('adminhtml/inp_adjuststock/prepare', array('warehouse_id' => $warehouseId)) . '\'',
+                    'onclick' => 'location.href=\'' . $this->getUrl('adminhtml/inp_adjuststock/new') . 'warehouse_id/'.$warehouseId.'\'',
                     'class' => 'add',
                 ),
                 'position' => -70

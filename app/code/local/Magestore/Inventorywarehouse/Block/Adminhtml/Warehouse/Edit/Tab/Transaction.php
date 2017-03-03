@@ -73,6 +73,14 @@ class Magestore_Inventorywarehouse_Block_Adminhtml_Warehouse_Edit_Tab_Transactio
                 if ($data['warehouse_id_from'] == $warehouseId) {
                     $arr[] = $data['warehouse_transaction_id'];
                 }
+            } elseif ($type == '7') {
+                if ($data['warehouse_id_from'] == $warehouseId) {
+                    $arr[] = $data['warehouse_transaction_id'];
+                }
+            } elseif ($type == '8') {
+                if ($data['warehouse_id_to'] == $warehouseId) {
+                    $arr[] = $data['warehouse_transaction_id'];
+                }
             }
         }
 

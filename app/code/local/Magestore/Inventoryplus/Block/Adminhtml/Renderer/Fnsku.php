@@ -27,15 +27,15 @@
  * @package     Magestore_Inventory
  * @author      Magestore Developer
  */
-class Magestore_Inventoryplus_Block_Adminhtml_Renderer_Productlocation extends Mage_Adminhtml_Block_Widget_Grid_Column_Renderer_Input
+class Magestore_Inventoryplus_Block_Adminhtml_Renderer_Fnsku extends Mage_Adminhtml_Block_Widget_Grid_Column_Renderer_Input
 {
 
     public function render(Varien_Object $row)
     {
         $html = '<input type="text" ';
-        $html .= 'name="product_location" ';
-        $html .= 'id="location-' . $row->getId() . '" ';
-        $html .= 'value="' . $row->getProductLocation() . '"';
+        $html .= 'name="fnsku" ';
+        $html .= 'id="fnsku-' . $row->getId() . '" ';
+        $html .= 'value="' . $row->getFnsku() . '"';
         $html .= 'style="width:70px !important"';
         $html .= 'class="input-text"/>';
         return $html;
@@ -49,7 +49,7 @@ class Magestore_Inventoryplus_Block_Adminhtml_Renderer_Productlocation extends M
      */
     public function renderExport(Varien_Object $row)
     {
-        return $row->getProductLocation();
+        return $row->getFnsku();
     }
 
 }

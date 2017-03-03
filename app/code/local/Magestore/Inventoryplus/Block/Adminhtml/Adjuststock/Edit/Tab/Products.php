@@ -60,13 +60,36 @@ class Magestore_Inventoryplus_Block_Adminhtml_Adjuststock_Edit_Tab_Products exte
         } else {
             $productSkus = array();
             if ($adjustStockProducts = Mage::getModel('admin/session')->getData('adjuststock_product_warehouse')) {
-
+                $supplier_id = $adjustStockProducts['supplier_id'];
                 $warehouse_id = $adjustStockProducts['warehouse_id'];
             }
+            $supplier_products = Mage::getModel('inventorypurchasing/supplier_product')->getCollection()
+                ->addFieldToFilter('supplier_id', $supplier_id);
+            if($supplier_id == -2 || $supplier_id == -1){
+                $supplier_products = Mage::getModel('inventorypurchasing/supplier_product')->getCollection();
+            }
+            $arrayProductSupplier = array();
+            foreach ($supplier_products as $item){
+                if(!in_array($item->getProductId(), $arrayProductSupplier))
+                    $arrayProductSupplier[] = $item->getProductId();
+            }
+
             $collection = Mage::getModel('catalog/product')->getCollection()
                     ->addAttributeToSelect('*')
-                    ->addAttributeToFilter('type_id', array('nin' => array('configurable', 'bundle', 'grouped')))
-            ;
+                    ->addAttributeToFilter('type_id', array('nin' => array('configurable', 'bundle', 'grouped')));
+            switch ($supplier_id){
+                case -2:
+                    $collection->addFieldToFilter('entity_id', array('in' => $arrayProductSupplier));
+                    break;
+                case -1:
+                    $collection->addFieldToFilter('entity_id', array('nin' => $arrayProductSupplier));
+                    break;
+                case 0:
+                    break;
+                default:
+                    $collection->addFieldToFilter('entity_id', array('in' => $arrayProductSupplier));
+                    break;
+            }
             $collection->joinField('qty', 'inventoryplus/warehouse_product', 'total_qty', 'product_id=entity_id', '{{table}}.warehouse_id=' . $warehouse_id, 'left');
         }
 

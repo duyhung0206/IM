@@ -56,7 +56,14 @@ Mage_Adminhtml_Block_Widget_Tabs {
                 'class' => 'ajax',
             ));
         }
-
+        if($id && !($source && $target)){
+            $this->addTab('products_delivery', array(
+                'label' => Mage::helper('inventorywarehouse')->__('Products delivery'),
+                'title' => Mage::helper('inventorywarehouse')->__('Products delivery'),
+                'url' => $this->getUrl('*/*/productsdelivery', array('_current' => true, 'id' => $this->getRequest()->getParam('id'))),
+                'class' => 'ajax',
+            ));
+        }
         return parent::_beforeToHtml();
     }
 

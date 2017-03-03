@@ -166,6 +166,8 @@
                 <action method="addColumnInputName">
                     <input_name>total_qty</input_name>
                     <input_name>product_location</input_name>
+                    <input_name>fnsku</input_name>
+                    <input_name>upc</input_name>
                 </action>
             </block>
         </block>
@@ -260,6 +262,8 @@
                 <action method="addColumnInputName">
                     <input_name>total_qty</input_name>
                     <input_name>product_location</input_name>
+                    <input_name>fnsku</input_name>
+                    <input_name>upc</input_name>
                 </action>
             </block>        
         </block>

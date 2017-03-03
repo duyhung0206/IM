@@ -117,7 +117,7 @@ class Magestore_Inventorypurchasing_Block_Adminhtml_Purchaseorder_Editdelivery_T
         return parent::_prepareCollection();
     }
 
-    protected function _prepareColumns() {
+    protected function _prepareColumns() {  
         $currencyCode = Mage::app()->getStore()->getBaseCurrency()->getCode();
 
         $this->addColumn('in_products', array(

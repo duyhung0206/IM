@@ -72,6 +72,31 @@ class Magestore_Inventoryplus_Block_Adminhtml_Stock_Edit_Tab_Products extends Ma
     protected function _prepareCollection() {
         $resource = Mage::getModel('core/resource');
         $warehouse = Mage::helper('inventoryplus/stock')->getWarehouse();
+        $supplier_id = Mage::getModel('admin/session')->getData('stock_supplier_id');
+        switch ($supplier_id){
+            case -2:
+                /*All supplier*/
+                $supplier_products = Mage::getModel('inventorypurchasing/supplier_product')->getCollection();
+                break;
+            case -1:
+                /*No supplier*/
+                $supplier_products = Mage::getModel('inventorypurchasing/supplier_product')->getCollection();
+                break;
+            case 0:
+
+                break;
+            default:
+                $supplier_products = Mage::getModel('inventorypurchasing/supplier_product')->getCollection()
+                    ->addFieldToFilter('supplier_id', $supplier_id);
+                break;
+        }
+        $arrayProductSupplier = array();
+        foreach ($supplier_products as $supplier_product){
+            if(!in_array($supplier_product->getProductId(), $arrayProductSupplier)){
+                $arrayProductSupplier[] = $supplier_product->getProductId();
+            }
+
+        }
         if (!$warehouse) {
             return parent::_prepareCollection();
         }
@@ -83,12 +108,29 @@ class Magestore_Inventoryplus_Block_Adminhtml_Stock_Edit_Tab_Products extends Ma
         $collection->addAttributeToSelect('entity_id')
                 ->addAttributeToSelect('sku')
                 ->addAttributeToSelect('name')
+                ->addAttributeToSelect('fnsku')
+                ->addAttributeToSelect('upc')
                 ->addAttributeToSelect('status')
                 ->addAttributeToSelect('price')
                 ->addAttributeToSelect('attribute_set_id')
                 ->addAttributeToSelect('type_id')
                 ->addAttributeToFilter('type_id', array('nin' => array('configurable', 'bundle', 'grouped')));
+        switch ($supplier_id){
+            case -2:
+                /*All supplier*/
+                $collection->addFieldToFilter('entity_id', array('in' => $arrayProductSupplier));
+                break;
+            case -1:
+                /*No supplier*/
+                $collection->addFieldToFilter('entity_id', array('nin' => $arrayProductSupplier));
+                break;
+            case 0:
 
+                break;
+            default:
+                $collection->addFieldToFilter('entity_id', array('in' => $arrayProductSupplier));
+                break;
+        }
         if ($this->_isAllWarehouse == true) {
             $collection->getSelect()
                     ->join(
@@ -98,6 +140,8 @@ class Magestore_Inventoryplus_Block_Adminhtml_Stock_Edit_Tab_Products extends Ma
             $collection->joinField('total_qty', 'inventoryplus/warehouse_product', 'total_qty', 'product_id=entity_id', "{{table}}.warehouse_id=$warehouseId", 'right');
             $collection->joinField('available_qty', 'inventoryplus/warehouse_product', 'available_qty', 'product_id=entity_id', "{{table}}.warehouse_id=$warehouseId", 'right');
             $collection->joinField('product_location', 'inventoryplus/warehouse_product', 'product_location', 'product_id=entity_id', "{{table}}.warehouse_id=$warehouseId", 'left');
+//            $collection->joinField('fnsku', 'inventoryplus/warehouse_product', 'fnsku', 'product_id=entity_id', "{{table}}.warehouse_id=$warehouseId", 'left');
+//            $collection->joinField('upc', 'inventoryplus/warehouse_product', 'upc', 'product_id=entity_id', "{{table}}.warehouse_id=$warehouseId", 'left');
         }
         $collection->getSelect()->group('e.entity_id');
         if ($this->_isAllWarehouse == true) {
@@ -208,15 +252,49 @@ class Magestore_Inventoryplus_Block_Adminhtml_Stock_Edit_Tab_Products extends Ma
                     'edit_only' => false,
                     'filter' => false,
                 ));
+                $this->addColumn('fnsku', array(
+                    'header' => Mage::helper('catalog')->__('FNSKU'),
+                    'width' => '150px',
+                    'index' => 'fnsku',
+                    'editable' => false,
+                    'edit_only' => false,
+                    'filter' => false,
+                ));
+                $this->addColumn('upc', array(
+                    'header' => Mage::helper('catalog')->__('UPC'),
+                    'width' => '150px',
+                    'index' => 'upc',
+                    'editable' => false,
+                    'edit_only' => false,
+                    'filter' => false,
+                ));
             } else {
                 $this->addColumn('product_location', array(
                     'header' => Mage::helper('catalog')->__('Product Location'),
-                    'width' => '150px',
+//                    'width' => '150px',
                     'index' => 'product_location',
                     'editable' => true,
                     'edit_only' => true,
                     'filter' => false,
                     'renderer' => 'inventoryplus/adminhtml_renderer_productlocation'
+                ));
+                $this->addColumn('fnsku', array(
+                    'header' => Mage::helper('catalog')->__('FNSKU'),
+//                    'width' => '150px',
+                    'index' => 'fnsku',
+                    'editable' => true,
+                    'edit_only' => true,
+                    'filter' => false,
+                    'renderer' => 'inventoryplus/adminhtml_renderer_fnsku'
+                ));
+                $this->addColumn('upc', array(
+                    'header' => Mage::helper('catalog')->__('UPC'),
+//                    'width' => '150px',
+                    'index' => 'upc',
+                    'editable' => true,
+                    'edit_only' => true,
+                    'filter' => false,
+                    'renderer' => 'inventoryplus/adminhtml_renderer_upc'
                 ));
             }
         }
@@ -256,6 +334,24 @@ class Magestore_Inventoryplus_Block_Adminhtml_Stock_Edit_Tab_Products extends Ma
                 'filter' => false,
                 'options' => Mage::helper('inventoryplus/warehouse')->getAllWarehouseName(),
                 'renderer' => 'inventoryplus/adminhtml_stock_renderer_productlocation',
+                'align' => 'left'
+            ));
+            $this->addColumn('fnsku', array(
+                'header' => Mage::helper('catalog')->__('FNSKU'),
+                'type' => 'options',
+                'sortable' => false,
+                'filter' => false,
+                'options' => Mage::helper('inventoryplus/warehouse')->getAllWarehouseName(),
+                'renderer' => 'inventoryplus/adminhtml_stock_renderer_fnsku',
+                'align' => 'left'
+            ));
+            $this->addColumn('upc', array(
+                'header' => Mage::helper('catalog')->__('UPC'),
+                'type' => 'options',
+                'sortable' => false,
+                'filter' => false,
+                'options' => Mage::helper('inventoryplus/warehouse')->getAllWarehouseName(),
+                'renderer' => 'inventoryplus/adminhtml_stock_renderer_upc',
                 'align' => 'left'
             ));
         }

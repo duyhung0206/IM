@@ -149,7 +149,7 @@ class Magestore_Inventoryplus_Adminhtml_Inp_AdjuststockController extends Magest
         $this->_title($this->__('Inventory'))
                 ->_title($this->__('Add New Adjust Stock'));
         $data = $this->getRequest()->getPost();
-        if (!$data && Mage::helper('inventoryplus')->isWarehouseEnabled() && !$this->getRequest()->getParam('warehouse_id')) {
+        if (!$data && Mage::helper('inventoryplus')->isWarehouseEnabled() && !$this->getRequest()->getParam('warehouse_id') && !$this->getRequest()->getParam('supplier_id')) {
             Mage::getSingleton('adminhtml/session')->addError(
                     Mage::helper('inventoryplus')->__('Unable to find item to save')
             );
@@ -160,6 +160,9 @@ class Magestore_Inventoryplus_Adminhtml_Inp_AdjuststockController extends Magest
         $adjustStockProducts = array();
         if ($this->getRequest()->getPost('warehouse_id'))
             $adjustStockProducts['warehouse_id'] = $this->getRequest()->getPost('warehouse_id');
+
+        if ($this->getRequest()->getPost('supplier_id'))
+            $adjustStockProducts['supplier_id'] = $this->getRequest()->getPost('supplier_id');
 
         if (!Mage::helper('inventoryplus')->isWarehouseEnabled()) {
             $adjustStockProducts['warehouse_id'] = Mage::getModel('inventoryplus/warehouse')->getCollection()

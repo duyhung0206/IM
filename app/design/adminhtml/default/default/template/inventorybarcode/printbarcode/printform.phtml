@@ -1,0 +1,178 @@
+<?php
+/**
+ * Magestore
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Magestore
+ * @package     Magestore_Inventory
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+?>
+<style>
+
+    @media print {
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        .header{
+            display:none !important;
+        }
+        .notification-global{
+            display:none !important;
+        }
+        .inventory-nav-bar{
+            display:none !important;
+        }
+        #inventory-title{
+            display:none !important;
+        }
+        .footer{
+            display:none !important;
+        }
+        .button-print{
+            display:none !important;
+        }
+}
+        table {table-layout: fixed;}
+</style>
+<?php $params = $this->getRequest()->getParams(); ?>
+<?php 
+    if(isset($params['barcodeId']) && $params['barcodeId']){
+	$barcodeIds = array($params['barcodeId']);
+    }else if(isset($params['barcodeIds']) && $params['barcodeIds']){
+            $barcodeIds = explode(',', $params['barcodeIds']);
+    }
+
+    if(isset($params['data']) && $params['data'] ){
+        $data = $params['data'];
+    }
+    $purchaseorderProducts = array();
+    if(isset($data) && $data) {
+        Mage::helper('inventoryplus')->parseStr(urldecode($data), $purchaseorderProducts);
+    }
+?>
+<?php $type = $params['type'];?>
+<?php $qty = $params['number_of_barcode'];?>
+<?php
+        $printingFormat = $params['barcode_template'];
+        if($printingFormat == 5 ){
+            $pageWidth= 3.94;
+        }else{
+            $pageWidth = 4.7;
+        }
+
+    function show( $abc ){
+        if(strlen($abc) == 23 ){
+         return  substr($abc,0,23);
+        }
+        if (strlen($abc) < 23) {
+         return  $abc;
+        }
+        if (strlen($abc) > 23){
+         $abc = substr($abc,0,20);
+         return $abc." ...";
+        }
+    }
+?>
+<?php $template = $params['barcode_template'];
+        $dataTemplate=Mage::helper('inventorybarcode')->getDataTemplateBarcode($template);
+        $customize = 0;
+        $heightImage = 0;
+        if(isset($params['customize']) && $params['customize']){
+            $customize = 1;
+            $heightImage = $params['heigth_barcode'];
+        }
+        $qtyAttribute=0;
+        if($dataTemplate['productname_show']=='1'){
+            $qtyAttribute++;
+        }
+        if($dataTemplate['sku_show']=='2')
+        {
+            $qtyAttribute++;
+        }
+        if($dataTemplate['price_show']=='3')
+        {
+            $qtyAttribute++;
+        }
+        $hieghtImg=(float)$dataTemplate['barcode_height'] - ((float)$qtyAttribute*(float)$dataTemplate['font_size']);
+        $tbWidth=(float)$dataTemplate['barcode_width']*(float)$dataTemplate['barcode_per_row'];
+?>
+<div style-="width:100%; float:left;" class="button-print">
+<button style="padding: 5px; width: 90px; font-size: 16px; margin: 10px;" onclick="printbarcode()" type="button"><?php echo $this->__('Print') ?></button>
+</div>
+<?php if(empty($data)): ?>
+<?php $dataTemplate=Mage::helper('inventorybarcode')->getDataTemplateBarcode($template);?>
+<?php $productBarcodeData = $this->helper('inventorybarcode')->loadProductBarcodeData($barcodeIds) ?>
+<?php $products = $productBarcodeData['products'] ?>
+<?php $barcodes = $productBarcodeData['barcodes'] ?>
+<div id="mydiv" style="width:<?php echo $dataTemplate['page_width'].$dataTemplate['barcode_unit'];?>; float:left; margin:<?php echo $dataTemplate['top_margin'].$dataTemplate['barcode_unit'];?> <?php echo $dataTemplate['right_margin'].$dataTemplate['barcode_unit'];?> <?php echo $dataTemplate['bottom_margin'].$dataTemplate['barcode_unit'];?> <?php echo $dataTemplate['left_margin'].$dataTemplate['barcode_unit'];?>">
+    <?php foreach($barcodeIds as $barcodeId){?>
+            <?php $barcode = $barcodes[$barcodeId]; ?>
+            <?php $product = $products[$barcodeId]; ?>
+            <?php for($i = 0; $i<$qty; $i++){?>
+                <?php if($dataTemplate && $dataTemplate['barcode_type']==0 ){?>
+                    <table style=" border-spacing:<?php echo $dataTemplate['veltical_distantce'].$dataTemplate['barcode_unit'];?> 0;width:<?php echo $tbWidth.$dataTemplate['barcode_unit'];?>; height:<?php echo $dataTemplate['page_height'].$dataTemplate['barcode_unit'];?>; text-align: center; margin:<?php echo $dataTemplate['horizontal_distance'].$dataTemplate['barcode_unit'];?> 0">
+                        <tr>
+                            <?php for($j=0;$j<$dataTemplate['barcode_per_row'] ;$j++){  ?>
+                                <td align ="center" style="width:<?php echo $dataTemplate['barcode_width'].$dataTemplate['barcode_unit'];?>;height:<?php echo $dataTemplate['barcode_height'].$dataTemplate['barcode_unit'];?>;  ">
+                                        <?php if($dataTemplate['productname_show']=='1'){?>
+                                            <span style=" width:100%;float: left; font-size: <?php echo $dataTemplate['font_size'].$dataTemplate['barcode_unit'];?>; text-align: center; "><?php echo show($product->getName())?></span>
+                                        <?php }?>
+                                        <?php if($dataTemplate['sku_show']=='2'){?>
+                                            <span style=" width:100%;float: left; font-size: <?php echo $dataTemplate['font_size'].$dataTemplate['barcode_unit'];?>; text-align: center; "><?php echo show($product->getSku()) ?></span>
+                                        <?php }?>
+                                        <?php if($dataTemplate['price_show']=='3'){?>
+                                            <span style=" width:100%;float: left; font-size: <?php echo $dataTemplate['font_size'].$dataTemplate['barcode_unit'];?>; text-align: center;"><?php echo Mage::helper('core')->currency($product->getPrice())?></span>
+                                        <?php }?>
+                                        <img style="width:<?php echo $dataTemplate['barcode_width'].$dataTemplate['barcode_unit'];?>;height:<?php echo $hieghtImg.$dataTemplate['barcode_unit'];?>" name="barcode_images" src="<?php echo Mage::helper("adminhtml")->getUrl('adminhtml/inb_printbarcode/getimage/',array('_query' =>array('type' => $type, 'text' => $barcode, 'customize' => $customize, 'heigth_barcode' => $heightImage, 'font_size' => 10))); ?>" />
+                                </td>     
+                            <?php }?>
+                        </tr>
+                </table>
+            <?php }?>
+                <?php if($dataTemplate && $dataTemplate['barcode_type']==1){?>
+                        <div style="display: inline-block; float:left; margin-left:35px; ">
+                            <table style=" width:<?php echo $dataTemplate['page_width'].$dataTemplate['barcode_unit'];?>; height:<?php echo $dataTemplate['page_height'].$dataTemplate['barcode_unit'];?>; line-height:0.4; margin:<?php echo $dataTemplate['horizontal_distance'].$dataTemplate['barcode_unit'];?> 0; border-spacing:<?php echo $dataTemplate['veltical_distantce'].$dataTemplate['barcode_unit'];?> 0" >
+                                <tr>
+                                    <td align="center" style=" width:<?php echo $dataTemplate['barcode_width'].$dataTemplate['barcode_unit'];?>;height:<?php echo $dataTemplate['barcode_height'].$dataTemplate['barcode_unit'];?>;">
+                                        <?php if($dataTemplate['productname_show']=='1'){?>
+                                            <span style="float: left; font-size: <?php echo $dataTemplate['font_size'].$dataTemplate['barcode_unit'];?>; text-align: left; margin-left:10px;margin-top:2px;  "><?php echo show($product->getName())?></span></br>
+                                        <?php }?>
+                                        <?php if($dataTemplate['sku_show']=='2'){?>
+                                            <span style="float: left; font-size:<?php echo $dataTemplate['font_size'].$dataTemplate['barcode_unit'];?>; text-align: left; margin-left:10px;margin-top:2px;"><?php echo show($product->getSku())?></span></br>
+                                        <?php }?>
+                                        <?php if($dataTemplate['price_show']=='3'){?>
+                                            <span style="float: left; font-size:<?php echo $dataTemplate['font_size'].$dataTemplate['barcode_unit'];?>; text-align: left; margin-left:10px;margin-top:4px; "><?php echo Mage::helper('core')->currency($product->getPrice())?></span>
+                                        <?php }?>
+                                    </td>
+                                    <td align="center" style="width:<?php echo $dataTemplate['barcode_width'].$dataTemplate['barcode_unit'];?>;height:<?php echo $dataTemplate['barcode_height'].$dataTemplate['barcode_unit'];?>;">
+                                       <img style=" margin-top: 15px; width:<?php echo $dataTemplate['barcode_width'].$dataTemplate['barcode_unit'];?>;height:<?php echo $dataTemplate['barcode_height'].$dataTemplate['barcode_unit'];?>;"  name="barcode_images" src="<?php echo Mage::helper("adminhtml")->getUrl('adminhtml/inb_printbarcode/getimage/',array('_query' =>array('type' => $type, 'text' => $barcode, 'customize' => $customize, 'heigth_barcode' => $heightImage, 'font_size' => 10))); ?>" />
+                                    </td>
+                                    <td></td>
+                                </tr>
+                            </table>
+                        </div>
+                <?php }?>
+            <?php }?>
+    <?php }?>
+</div>
+<?php endif; ?>
+
+<script type="text/javascript">
+    function printbarcode(){
+        window.print();
+    }
+</script>
+

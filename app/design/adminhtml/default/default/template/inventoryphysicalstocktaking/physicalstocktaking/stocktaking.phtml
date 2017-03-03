@@ -1,0 +1,78 @@
+<?php $stocktaking_id = $this->getStocktakingid(); ?>
+<?php
+$items = $this->getStocktakingproducts();
+$itemsData = $items->getData();
+?>
+<?php
+$warehouse_id = '';
+if ($adjustStockProducts = Mage::getModel('admin/session')->getData('physicalstocktaking_product_warehouse')) {
+    $warehouse_id = $adjustStockProducts['warehouse_id'];
+}
+if ($stocktaking_id) {
+    $physical = Mage::getModel('inventoryphysicalstocktaking/physicalstocktaking')->load($stocktaking_id);
+    $warehouse_id = $physical->getWarehouseId();
+}
+$warehouse = Mage::getModel('inventoryplus/warehouse')->load($warehouse_id);
+?>
+<div class="entry-edit">
+    <div id="adjuststock_form" class="fieldset ">
+        <div style="float:left;width: 60%;">
+            <?php if ($stocktaking_id): ?>
+            <?php $adjustStock = Mage::getModel('inventoryphysicalstocktaking/physicalstocktaking')->load($stocktaking_id) ?>
+            <?php $helper = Mage::helper('inventoryphysicalstocktaking'); ?>
+            <div>
+                <label for="warehouse">
+                    <strong>
+                        <?php echo $this->__('Warehouse') ?>:
+                    </strong>
+                </label>
+                <?php echo $warehouse->getWarehouseName() ?>
+            </div>
+            <label for="warehouse"><?php echo '<strong>' . $this->__('Created by: ') . '</strong>' . $adjustStock->getCreateBy() ?></label>
+            <?php $date = new Zend_Date(); ?>
+            <?php $date->setLocale(Mage::app()->getLocale()->getLocaleCode()); ?>
+            <?php $date_adjust = $date->setDate($adjustStock->getCreatedAt(), 'yyyy/MM/dd'); ?>
+            <br />
+            <label for="warehouse"><?php echo '<strong>' . $this->__('Created on: ') . '</strong>' . Mage::helper('core')->formatDate($date_adjust, 'medium'); ?></label>
+            <div>
+                <label for="warehouse">
+                    <strong>
+                        <?php echo $this->__('Reason(s) for stocktaking: ') ?>
+                    </strong>
+                </label>
+                <?php echo $adjustStock->getReason() ?>
+            </div>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
+<table cellspacing="0" cellpadding="0" border="0" width="650" style="margin-top: 10px, font-family: Arial, Helvetica, sans-serif; border:1px solid #EAEAEA;">
+    <thead>
+    <tr>
+        <th align="left" bgcolor="#EAEAEA" style="font-size:13px; padding:3px 9px"><?php echo $this->__('Product') ?></th>
+        <th align="left" bgcolor="#EAEAEA" style="font-size:13px; padding:3px 9px"><?php echo $this->__('SKU') ?></th>
+        <th align="left" bgcolor="#EAEAEA" style="font-size:13px; padding:3px 9px"><?php echo $this->__('Product Location') ?></th>
+        <th align="center" bgcolor="#EAEAEA" style="font-size:13px; padding:3px 9px"><?php echo $this->__('Counted Qty') ?></th>
+    </tr>
+    </thead>
+    <?php $i = 0;
+    foreach ($items as $item): ?>
+        <tbody<?php echo $i % 2 ? ' bgcolor="#F6F6F6"' : '' ?>>
+        <tr>
+            <td align="left" valign="top" style="font-size:11px; padding:3px 9px; border-bottom:1px dotted #CCCCCC;">
+                <strong style="font-size:11px;"><?php echo $item->getName(); ?></strong>
+            </td>
+            <td align="left" valign="top" style="font-size:11px; padding:3px 9px; border-bottom:1px dotted #CCCCCC;">
+                <?php echo $item->getSku(); ?>
+            </td>
+            <td align="left" valign="top" style="font-size:11px; padding:3px 9px; border-bottom:1px dotted #CCCCCC;">
+                <?php echo $item->getProductLocation(); ?>
+            </td>
+            <td align="center" valign="top" style="font-size:11px; padding:3px 9px; border-bottom:1px dotted #CCCCCC;">
+                <?php echo $item->getAdjustQty(); /* Edited by Magnus - 240816 - Fix bug Counted Qty not show in PDF file */ ?>
+            </td>
+        </tr>
+        </tbody>
+        <?php $i++;?>
+    <?php endforeach; ?>
+</table>

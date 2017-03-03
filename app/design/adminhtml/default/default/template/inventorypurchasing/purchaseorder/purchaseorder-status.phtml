@@ -1,0 +1,161 @@
+<?php
+/**
+ * Magestore
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Magestore
+ * @package     Magestore_Inventorypurchasing
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+/**
+ * Inventoryreports Helper
+ *
+ * @category    Magestore
+ * @package     Magestore_Inventoryreports
+ * @author      Magestore Developer
+ */
+?>
+<style type="text/css">
+    .purchaseorder-status{
+        float: left;
+        padding-left: 10px;
+    }
+    .purchaseorder-status-active{
+        color: #21b799;
+    }
+
+    /*.purchaseorder-status{*/
+        /*position: relative;*/
+    /*}*/
+    /*.purchaseorder-status:after{*/
+        /*position: absolute;*/
+    /*}*/
+
+    #crumbs {
+        text-align: center;
+        float: right;
+    }
+
+    #crumbs ul {
+        list-style: none;
+        display: inline-table;
+    }
+    #crumbs ul li {
+        display: inline;
+    }
+
+    #crumbs ul li a {
+        display: block;
+        float: left;
+        height: 20px;
+        background: /*#e2e2e0*/ #afafaf;
+        text-align: center;
+        padding: 5px 10px 5px 25px;
+        position: relative;
+        margin: 0 1px 0 0;
+        font-size: 13px;
+        text-decoration: none;
+        color: #fff;
+    }
+    #crumbs ul li a:after {
+        content: "";
+        border-top: 15px solid transparent;
+        border-bottom: 15px solid transparent;
+        border-left: 10px solid #afafaf /*#e2e2e0*/;
+        position: absolute;
+        right: -10px;
+        top: 0;
+        z-index: 1;
+    }
+
+    #crumbs ul li a.purchaseorder-status-active {
+        background: #21b799;
+    }
+    #crumbs ul li a.purchaseorder-status-active:after {
+        border-left: 10px solid #21b799;
+    }
+    #crumbs ul li a:before {
+        content: "";
+        border-top: 15px solid transparent;
+        border-bottom: 15px solid transparent;
+        border-left: 10px solid /* #d4f2ff*/;
+        position: absolute; left: 0; top: 0;
+    }
+
+    #crumbs ul li:first-child a {
+        border-top-left-radius: 10px; border-bottom-left-radius: 10px;
+    }
+    #crumbs ul li:first-child a:before {
+        display: none;
+    }
+
+    #crumbs ul li:last-child a {
+        /*padding-right: 80px;*/
+        border-top-right-radius: 10px;
+        border-bottom-right-radius: 10px;
+    }
+    #crumbs ul li:last-child a:after {
+        display: none;
+    }
+    #purchase_order_status {
+        margin-bottom: 5px;
+    }
+    h3.head-adminhtml-purchaseorder a {
+        font-size:13px;
+        font-weight: bold;
+        padding: 0px 5px; 
+        margin-left:5px; 
+        color: #FFFFFF; 
+        text-decoration: none;
+    }
+</style>
+<?php $purchaseOrderId = $this->getRequest()->getParam('id'); ?>
+<?php if(!$purchaseOrderId): ?>
+    <?php $status = Magestore_Inventorypurchasing_Model_Purchaseorder::PENDING_STATUS; ?>
+<?php else: ?>
+    <?php $purchaseOrder = Mage::getModel('inventorypurchasing/purchaseorder')->load($purchaseOrderId); ?>
+    <?php $status = $purchaseOrder->getStatus(); ?>
+<?php endif; ?>
+<div class="clear fix"></div>
+<div id="purchase_order_status" style="float: right;">
+    <div id="crumbs">
+        <ul>
+            <li>
+                <a class="<?php if($status==Magestore_Inventorypurchasing_Model_Purchaseorder::PENDING_STATUS): ?>purchaseorder-status-active<?php endif; ?>" onclick="return false"><?php echo Mage::helper('inventorypurchasing')->__('PENDING'); ?></a>
+            </li>
+            <?php if (Mage::getStoreConfig('inventoryplus/purchasing/require_confirmation_from_supplier')): ?>
+                <li>
+                    <a class="<?php if($status==Magestore_Inventorypurchasing_Model_Purchaseorder::WAITING_CONFIRM_STATUS): ?>purchaseorder-status-active<?php endif; ?>" onclick="return false">
+                        <?php if(in_array($status, array(Magestore_Inventorypurchasing_Model_Purchaseorder::PENDING_STATUS,
+                                                            Magestore_Inventorypurchasing_Model_Purchaseorder::WAITING_CONFIRM_STATUS))): ?>
+                            <?php echo Mage::helper('inventorypurchasing')->__('WAITING CONFIRMATION'); ?>
+                        <?php else: ?>
+                            <?php echo Mage::helper('inventorypurchasing')->__('CONFIRMED'); ?>
+                        <?php endif; ?>
+                    </a>
+                </li>
+            <?php endif; ?>
+            <li>
+                <a class="<?php if($status==Magestore_Inventorypurchasing_Model_Purchaseorder::AWAITING_DELIVERY_STATUS): ?>purchaseorder-status-active<?php endif; ?>" onclick="return false"><?php echo Mage::helper('inventorypurchasing')->__('WAITING DELIVERY'); ?></a>
+            </li>
+            <li>
+                <a class="<?php if($status==Magestore_Inventorypurchasing_Model_Purchaseorder::RECEIVING_STATUS): ?>purchaseorder-status-active<?php endif; ?>" onclick="return false"><?php echo Mage::helper('inventorypurchasing')->__('PROCESSING DELIVERY'); ?></a>
+            </li>
+            <li>
+                <a class="<?php if($status==Magestore_Inventorypurchasing_Model_Purchaseorder::COMPLETE_STATUS): ?>purchaseorder-status-active<?php endif; ?>" onclick="return false"><?php echo Mage::helper('inventorypurchasing')->__('COMPLETE'); ?></a>
+            </li>
+        </ul>
+    </div>
+</div>
+<div class="clear fix"></div>

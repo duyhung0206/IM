@@ -1,0 +1,4 @@
+sku,qty,is_in_stock,warehouse_1,warehouse_3,suppliers
+"wbk012c-Pink-L",333,1,111,213,"1,2"
+"wbk012c-Pink-M",444,1,101,202,1
+"wbk012c-Pink-S",132,1,102,201,3

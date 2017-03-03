@@ -1,0 +1,62 @@
+<?php
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventoryplus
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+?>
+<?php if (!$this->getRequest()->getParam('id')): ?>
+    <script type="text/javascript">
+        var allInputChange = document.getElementsByName('<?php echo $this->getQtyInput(); ?>');
+        var allrows = new Array();
+        for(var i=0; i<allInputChange.length; i++){
+            var td_parent = allInputChange[i].parentElement;
+            var tr_parent = td_parent.parentElement;
+            allrows[i] = tr_parent.className;
+            var value = allInputChange[i].value;
+            Event.observe(allInputChange[i],'keyup', function() { test(); });
+//            Event.observe(allInputChange[i],'change', function() { test(); });
+        }
+        var scannedInput1 = '<?php echo $this->getQtyInput(); ?>';
+        function test(){
+//            var data = new Array();
+            var qtydata = '';
+            for(var j=0; j< allrows.length; j++){
+                var rowp = document.getElementsByClassName(allrows[j])[0];
+                if(rowp){
+                    var checkbox = rowp.select('[type="checkbox"]')[0];
+                    if(checkbox.checked != false) {
+                        var qty_field = rowp.select('[name="' + scannedInput1 + '"]')[0];
+//                        data[j] = allrows[j] + ';' + qty_field.value;
+                        qtydata +=  allrows[j] + ';' + qty_field.value+'&&';
+                    }
+                }
+            }
+
+            var reupdateqtymanual = '<?php echo $this->getReUpdateQtyManualUrl(); ?>';
+            if(qtydata){
+                parameters = {qtydata:qtydata};
+                new Ajax.Request(reupdateqtymanual, {
+                    parameters: parameters,
+                    onSuccess: '',
+                    onFailure: function(transport){
+                    }
+                });
+            }
+        }
+    </script>
+<?php endif; ?>

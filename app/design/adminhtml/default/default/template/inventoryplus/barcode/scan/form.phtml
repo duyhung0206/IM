@@ -1,0 +1,98 @@
+<?php
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventoryplus
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+?>
+<?php if(Mage::helper('core')->isModuleEnabled('Magestore_Inventorybarcode')): ?>
+<?php if (!$this->getRequest()->getParam('id')): ?>
+    <?php $action = $this->getScanActionName(); ?>
+    <div class="entry-edit">
+        <div class="entry-edit-head">
+            <h4 class="icon-head head-edit-form fieldset-legend">
+                <?php if((strpos($action, 'delivery_po') != -1) && (strpos($action, 'delivery_po') !== false)): ?>
+                    <?php echo $this->__('Product Scanner') ?>
+                    <?php $placeholder = 'Enter '; ?>
+
+                    <?php if(Mage::helper('core')->isModuleEnabled('Magestore_Inventorybarcode')): ?>
+                        <?php $placeholder .= "barcode"; ?>
+                    <?php endif; ?>
+                    <?php $fieldScans = Mage::getStoreConfig('inventoryplus/purchasing/delivery_field_scan'); ?>
+                    <?php
+                    if($fieldScans){
+                        $fieldScans = explode(',',$fieldScans);
+                        foreach($fieldScans as $field){
+                            if($field == 'supplier_sku') {
+                                $placeholder .= ' / Supplier SKU';
+                            }else{
+                                $attribute = Mage::getResourceModel('catalog/product_attribute_collection')
+                                    ->addFieldToFilter('attribute_code',$field)
+                                    ->getFirstItem();
+                                if($attribute->getFrontendLabel())
+                                    $placeholder .= ' / '.$attribute->getFrontendLabel();
+                            }
+
+                        }
+                    }
+                    ?>
+                <?php else: ?>
+                    <?php echo $this->__('Barcode Scanner') ?>
+                    <?php $placeholder = $this->__('Enter barcode here...'); ?>
+                <?php endif; ?>
+            </h4>
+        </div>
+    </div>
+    <div id="physicalstocktaking-barcode-scanner" class="fieldset ">
+        <input type="text" id="barcode_search" class="input-text package-barcode" name="barcode_query" placeholder="<?php echo $placeholder; //$this->__('Enter barcode here...') ?>"/>
+        <button class="scalable delete" id="reset_barcode_scan" type="button" title="Reset">
+            <span><span><?php echo $this->__('Reset Scanned Data')?></span></span>
+        </button>
+        <div class="clear fix"></div>
+        <span id="barcode_search_indicator" class="autocomplete-indicator" style="display: none;">
+            <img src="<?php echo $this->getSkinUrl('images/ajax-loader.gif') ?>" alt="Loading..." class="v-middle">
+        </span>
+        <div class="clear"></div>
+        <div id="barcode_search_autocomplete" class="autocomplete" style="display: none"></div>
+        <div class="last-scanned-items" id="last-scanned-items">
+            <table id="last-scanned-items-table" border="1">
+                <tr><th></th></tr>
+            </table>
+        </div>        
+    </div>
+    <script type="text/javascript">
+        document.getElementById("barcode_search").focus();
+        new Ajax.ScanBarcodeAutocompleter(
+                'barcode_search',
+                'barcode_search_autocomplete',
+                '<?php echo $this->getConfirmMessage() ?>',
+                '<?php echo $this->getQtyInput() ?>',                
+                '<?php echo $this->getScanUrl() ?>',
+                '<?php echo $this->getResetDataUrl() ?>',
+                '<?php echo $this->getGridJsObject() ?>',
+                {
+                    paramName: "barcode_query",
+                    minChars: 2,
+                    indicator: "barcode_search_indicator",
+                    updateElement: false,
+                    evalJSON: 'force',
+                    updateurl: '<?php echo $this->getReUpdateQtyUrl(); ?>'
+                }
+          );
+    </script>
+<?php endif; ?>
+<?php endif; // Check enable Barcode plugin ?>

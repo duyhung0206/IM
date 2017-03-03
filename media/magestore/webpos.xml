@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<wpos>
+  <webpos_admin_adminlogout>http://localhost/magento-ee113/index.php/admin/index/logout/key/9ffabc1cfdd9fc9efcc6659f13829bbe97fe14db4c1b4f11b67b2b66b1d4a05c/</webpos_admin_adminlogout>
+  <webpos_admin_adminlogin>http://localhost/magento-ee113/index.php/webposadmin/adminhtml_webpos/index/key/7f46e468488774b9d777cb7bf8f2aa9b9db4b1f18980887003bd22000bedf9bb/</webpos_admin_adminlogin>
+  <firstname>Daniel</firstname>
+  <lastname>Truong</lastname>
+  <username>admin</username>
+  <webpos_admin_settingslink>http://localhost/magento-ee113/index.php/webposadmin/adminhtml_config/edit/section/webpos/frompos/1/key/8ad0a442393dc2f97ed0f2ce2254632a849fdd3f4b2961bd92c2a69b6efc6d50/</webpos_admin_settingslink>
+</wpos>

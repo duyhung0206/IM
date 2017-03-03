@@ -1,0 +1,56 @@
+/**
+ * Magestore
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Magestore
+ * @package     Magestore_Inventory
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+
+/*Barcode Scanner Section*/
+.inventoryplus .package-barcode {
+    width: 100%;
+    height: 40px;
+    padding: 20px 0;
+    font-size: 18px;
+    text-transform: uppercase;
+    font-style: italic;
+    color: #4f4f4f;
+    border: 1px solid #7f7f7f;
+}
+
+.inventoryplus #last-scanned-items-table {
+    width: 100%;
+    border: none;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.inventoryplus #last-scanned-items-table th, td {
+    border-color: #D6D6D6;
+    padding: 5px !important;
+}
+
+.inventoryplus #last-scanned-items-table .item-name {
+    width: 60%;
+}
+
+.inventoryplus #last-scanned-items-table .item-sku {
+    width: 20%;
+}
+
+.inventoryplus #last-scanned-items-table .item-image {
+    width: 20%;
+}
+/*End of Barcode Scanner Section*/

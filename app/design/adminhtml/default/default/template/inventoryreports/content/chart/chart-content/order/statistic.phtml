@@ -1,0 +1,92 @@
+<?php
+
+/**
+ * Magestore
+ * 
+ * NOTICE OF LICENSE
+ * 
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ * 
+ * DISCLAIMER
+ * 
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventorysupplyneeds
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+
+/**
+ * Inventoryreports Helper
+ * 
+ * @category    Magestore
+ * @package     Magestore_Inventoryreports
+ * @author      Magestore Developer
+ */
+?>
+<div class="row-fluid intelligence-data tcenter ptl">
+    <?php if($this->isSalesSKUReport()):?>
+        <div class="span3 data-well">
+            <h2><?php echo $this->helper('core')->currency($this->getSubTotal()) ?></h2>
+            <span class="light-text">
+                <span class="translation_missing" title="">
+                    <?php echo $this->__('Subtotal Sales Value')?>
+                </span>
+            </span>
+        </div>
+        <div class="span3 data-well">
+            <h2><?php echo $this->helper('core')->currency($this->getTaxAmount()) ?></h2>
+            <span class="light-text">
+                <span class="translation_missing" title="">
+                    <?php echo $this->__('Tax Amount')?>
+                </span>
+            </span>
+        </div>
+        <div class="span3 data-well">
+            <h2><?php echo $this->helper('core')->currency($this->getShippingAmount()) ?></h2>
+            <span class="light-text">
+                <span class="translation_missing" title="">
+                    <?php echo $this->__('Shipping Amount')?>
+                </span>
+            </span>
+        </div>
+        <div class="span3 data-well">
+            <h2><?php echo $this->helper('core')->currency($this->getDiscountAmount()) ?></h2>
+            <span class="light-text">
+                <span class="translation_missing" title="">
+                    <?php echo $this->__('Discount Amount')?>
+                </span>
+            </span>
+        </div>
+    <?php else : ?>
+
+    <?php endif; ?>
+    <div class="span3 data-well">
+        <h2><?php echo $this->helper('core')->currency($this->getGrandTotal()) ?></h2>
+        <span class="light-text">
+            <span class="translation_missing" title="">
+                <?php echo $this->__('Grand Total Sales Value')?>
+            </span>
+        </span>
+    </div>
+    <div class="span3 data-well">
+        <h2><?php echo $this->getTotalOrder() ?></h2>
+        <span class="light-text">
+            <span class="translation_missing" title="">
+                <?php echo $this->__('Sales Order Volume')?>
+            </span>
+        </span>
+    </div>
+    <div class="span3 data-well">
+        <h2><?php echo $this->getTotalItem() ?></h2>
+        <span class="light-text">
+            <span class="translation_missing" title="">
+                <?php echo $this->__('Qty Ordered')?>
+            </span>
+        </span>
+    </div>
+</div>

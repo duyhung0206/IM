@@ -1,0 +1,90 @@
+<?php //zend_debug::dump($this->getRoot()->getData());die();?>
+<div class="content-header">
+    <h3 class="icon-head head-adminhtml-adjuststock"><?php echo $this->__('Physical Stocktaking') ?></h3>
+    <p class="form-buttons">
+        <button style="" onclick="setLocation('<?php echo $this->getUrl('adminhtml/inph_physicalstocktaking/index/') ?>')" class="scalable back" type="button" id="id_02f63433870535cac7681f5c6ec5edb3">
+            <span><?php echo $this->__('Back'); ?></span>
+        </button>
+        <button style="" onclick="setLocation(window.location.href)" class="scalable " type="button" id="id_87ecfc78a1d41044599d433af1bbd811">
+            <span><?php echo $this->__('Reset'); ?></span>
+        </button>
+    </p>
+</div>
+<?php $warehouses = Mage::helper('inventoryphysicalstocktaking')->getPhysicalWarehouseByAdmin() ?>
+<?php if($warehouses && count($warehouses)): ?>
+    <form enctype="multipart/form-data" method="post" action="<?php echo $this->getUrl('adminhtml/inph_physicalstocktaking/prepare') ?>" id="edit_form">
+        <div class="entry-edit">
+            <div id="adjuststock_form" class="fieldset ">
+                <input name="form_key" type="hidden" value="<?php echo $this->getFormKey() ?>" id="form_key"/>
+                <div>
+                    <label for="warehouse">
+                        <?php echo $this->__('Please select a Warehouse to create a new physical stocktaking') ?>:&nbsp;&nbsp;
+                    </label>
+                    <select name="warehouse_id">
+                        <?php foreach($warehouses as $warehouse): ?>
+                            <option value="<?php echo $warehouse->getId() ?>"><?php echo $warehouse->getWarehouseName() ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div><br />
+                <?php if(0): ?>
+                <div>
+                    <div class="inline">
+                        <?php echo $this->__('Select Category') ?>:&nbsp;&nbsp;
+                    </div>
+                    <div class="inline">
+                        <select name="category" id="selectCategory" onchange="changeFunc();">
+                            <option value="0"><?php echo $this->__('All Categories') ?></option>
+                            <option value="1"><?php echo $this->__('Specific Categories') ?></option>
+                        </select>
+                    </div>
+
+                    <br class="clearBoth" />
+                </div></br>
+                <div id="specific_categories" style="display: none">
+                    <label for="Specific Categories">
+                        <?php echo $this->__('Specific Categories') ?>:&nbsp;&nbsp;
+                    </label>
+                    <input name="categories" id="categories"/></br>
+                    <div>
+                        <?php
+                        echo $this->getLayout()->createBlock('adminhtml/catalog_category_tree')
+                            ->setTemplate('inventoryphysicalstocktaking/physicalstocktaking/categories.phtml')
+                            ->toHtml();
+                        ?>
+                    </div>
+                </div></br>
+                <?php endif; ?>
+                <div>
+                    <button style="" type="submit" class="scalable task" id="Upload">
+                        <span><?php echo $this->__('Continue') ?></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+<?php else: ?>
+    <?php echo $this->__('You have not permission to create stock-taking on any warehouse!') ?>
+<?php endif; ?>
+<style type="text/css">
+    div.inline { float:left; }
+    .clearBoth { clear:both; }
+</style>
+<script type="text/javascript">
+    //<![CDATA[
+    var dataForm = new varienForm('edit_form', true);
+
+    function changeFunc() {
+        var selectBox = $("selectCategory");
+        var selectedValue = selectBox.options[selectBox.selectedIndex].value;
+        if(selectedValue === "1"){
+            $("specific_categories").style.display = "block";
+        } else {
+            $("specific_categories").style.display = "none";
+        }
+    }
+    //]]>
+</script>
+
+
+

@@ -1,0 +1,156 @@
+<?php
+/**
+ * Magestore
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Magestore.com license that is
+ * available through the world-wide-web at this URL:
+ * http://www.magestore.com/license-agreement.html
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    Magestore
+ * @package     Magestore_Inventory
+ * @copyright   Copyright (c) 2012 Magestore (http://www.magestore.com/)
+ * @license     http://www.magestore.com/license-agreement.html
+ */
+?>
+<style>
+        .printview {border: 4px solid #C99D6C;}
+        table {table-layout: fixed;}
+        td {overflow: hidden;white-space: nowrap;}
+    @media print {
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        .header{
+            display:none !important;
+        }
+        .notification-global{
+            display:none !important;
+        }
+        .inventory-nav-bar{
+            display:none !important;
+        }
+        #inventory-title{
+            display:none !important;
+        }
+        .footer{
+            display:none !important;
+        }
+        .button-print{
+            display:none !important;
+        }
+        table{border: none !important; }
+        table td{ border: none !important;}
+    } 
+</style>
+
+<div style-="width:100%; float:left;" class="button-print">
+<button style="padding: 5px; width: 90px; font-size: 16px; margin: 10px;" onclick="printbarcode()" type="button"><?php echo $this->__('Print') ?></button>
+</div>
+
+
+<!--Add by alan - print barcode -->
+<?php 
+    if($barUnit==0){
+        $unit='mm';
+    }elseif ($barUnit==1) {
+        $unit='cm';
+    }elseif ($barUnit==2) {
+        $unit='in';
+    }
+    $qtyAttribute=0;
+    foreach ($attributeShow as $value) {
+        if ($value == '1') {
+            $productname_show = 1;
+            $qtyAttribute++;
+        }elseif ($value == '2') {
+            $sku_show = 1;
+            $qtyAttribute++;
+        }elseif ($value == '3') {
+            $price_show = 1;
+            $qtyAttribute++;
+        }
+    }
+    $hieghtImg=(float)$barcodeHeight - ((float)$qtyAttribute*(float)$fontSize);
+    $tbWidth=(float)$barcodeWidth*(float)$barPerRow;
+    
+?>
+
+<div id="mydiv" class="printview" style="  overflow: hidden;width:<?php echo $pageWidth.$unit;?> ;float:left; padding:<?php echo $topMargin.$unit;?> <?php echo $rightMargin.$unit;?> <?php echo $bottomMargin.$unit;?> <?php echo $leftMargin.$unit;?>">
+            <?php for($i = 0; $i<3; $i++){?>
+                
+                <?php if($barType==0 ){?>
+            <table style="border-spacing:<?php echo $velticalDistantce.$unit;?> 0;width:<?php echo $tbWidth.$unit;?>; height:<?php echo $pageHeight.$unit;?>; margin:<?php echo $horizontalDistance.$unit;?> 0;text-align: center; overflow: hidden">
+                        <tr>
+                            <?php for($j=0;$j<$barPerRow ;$j++){  ?>
+                            <td  align ="center" style="border: 1px solid black; width: <?php echo $barcodeWidth.$unit;?>; height:<?php echo $barcodeHeight.$unit;?>; ">
+                                    
+                                    
+                                        <?php if($productname_show==1){?>
+                                            <span style=" width:100%;float: left; font-size: <?php echo $fontSize.$unit;?>; text-align: center; ">Product Name</span>
+                                        <?php }?>
+                                        <?php if($sku_show==1){?>
+                                            <span style=" width:100%;float: left; font-size: <?php echo $fontSize.$unit;?>; text-align: center; ">Product Sku</span>
+                                        <?php }?>
+                                        <?php if($price_show==1){?>
+                                            <span style=" width:100%;float: left; font-size: <?php echo $fontSize.$unit;?>; text-align: center;">Price</span>
+                                        <?php }?>
+                                        <img style=" float: left;width:<?php echo $barcodeWidth.$unit;?>;height:<?php echo $hieghtImg.$unit;?>;" name="barcode_images" src="<?php echo Mage::helper("adminhtml")->getUrl('adminhtml/inb_printbarcode/getimage/',array('type' => 'code128', 'text' => '1234567890128', 'customize' => '0', 'heigth_barcode' => '5', 'font_size' => 10)); ?>" />
+                                    
+
+                                </td>
+                                        
+                            <?php }?>
+
+                        </tr>
+            </table>
+            <?php }?>
+               
+                <?php if($barType==1){?>
+                        <div style="display: inline-block; float:left; margin-left:35px; ">
+                            <table style=" width:<?php echo $pageWidth.$unit;?>; height:<?php echo $pageHeight.$unit;?>; line-height:0.4; margin:<?php echo $horizontalDistance.$unit;?> 0; border-spacing:<?php echo $velticalDistantce.$unit;?> 0;" >
+                                <tr>
+                                    <td align="center" style="border: 1px solid black; width:<?php echo $barcodeWidth.$unit;?>; height:<?php echo $barcodeHeight.$unit;?>;">
+                                        <?php if($productname_show=='1'){?>
+                                            <span style="float: left; font-size: <?php echo $fontSize.$unit;?>; text-align: left; margin-left:10px;margin-top:2px;  ">Product Name</span></br>
+                                        <?php }?>
+                                        <?php if($sku_show=='1'){?>
+                                            <span style="float: left; font-size: <?php echo $fontSize.$unit;?>; text-align: left; margin-left:10px;margin-top:2px;">Sku</span></br>
+                                        <?php }?>
+                                        <?php if($price_show=='1'){?>
+                                            <span style="float: left; font-size:<?php echo $fontSize.$unit;?>; text-align: left; margin-left:10px;margin-top:4px; ">Price</span>
+                                        <?php }?>
+                                    </td>
+                                    <td align="center" style="border: 1px solid black;width:<?php echo $barcodeWidth.$unit;?>; height:<?php echo $barcodeHeight.$unit;?>;">
+                                       <img style=" margin-top: 15px; width:<?php echo $barcodeWidth.$unit;?>;height:<?php echo $barcodeHeight.$unit;?>;"  name="barcode_images" src="<?php echo Mage::helper("adminhtml")->getUrl('adminhtml/inb_printbarcode/getimage/',array('type' => 'code128', 'text' => '1234567890128', 'customize' => '0', 'heigth_barcode' => '5', 'font_size' => 10)); ?>" />
+                                    </td>
+                                    <td></td>
+                                </tr>
+                            </table>
+                        </div>
+                <?php }?>
+
+            <?php }?>
+
+</div>
+
+
+<!--end add by alan - print barcode -->
+
+<script type="text/javascript">
+    function printbarcode(){
+        document.getElementById("mydiv").removeAttribute("class");
+        window.print();
+        document.getElementById("mydiv").setAttribute("class", "printview");
+    }
+
+
+</script>
+

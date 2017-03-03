@@ -1,0 +1,126 @@
+<?php $requeststockid = $this->getRequeststock(); ?>
+<?php $items = $this->getRequeststockproducts();?>
+<?php if (!$requeststockid): ?>
+    <?php $source = $this->getRequest()->getParam('source'); ?>
+    <?php $target = $this->getRequest()->getParam('target'); ?>
+<?php else: ?>
+    <?php $model = Mage::getModel('inventorywarehouse/requeststock')->load($requeststockid); ?>
+    <?php $source = $model->getWarehouseIdFrom(); ?>
+    <?php $target = $model->getWarehouseIdTo(); ?>
+<?php endif; ?>
+<div class="entry-edit">
+    <div class="entry-edit-head">
+        <!--        <h4 class="icon-head head-edit-form fieldset-legend">--><?php //echo $this->__('Stock Sending Information') ?><!--</h4>-->
+        <div class="form-buttons"></div>
+    </div>
+    <div id="sendstock_form" class="fieldset ">
+        <div class="hor-scroll">
+            <table cellspacing="0" class="form-list">
+                <tbody>
+                <tr>
+                    <td class="label"><label style="font-weight: bold;" for="warehouse_id_from"><?php echo $this->__('Source Warehouse') ?>:</label></td>
+                    <td class="value">
+                        <?php if (!$this->getRequest()->getParam('id')): ?>
+                            <?php echo Mage::helper('inventorywarehouse/warehouse')->getWarehouseNameByWarehouseId($source); ?>
+                        <?php else: ?>
+                            <?php echo $model->getWarehouseNameFrom() ?>
+                        <?php endif ?>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label"><label style="font-weight: bold;" for="warehouse_id_to"><?php echo $this->__('Destination Warehouse') ?>:</label></td>
+                    <td class="value">
+                        <?php if (!$this->getRequest()->getParam('id')): ?>
+                            <?php if($target == 'others'): ?>
+                                <?php echo $this->__('Others') ?>
+                            <?php else: ?>
+                                <?php echo Mage::helper('inventorywarehouse/warehouse')->getWarehouseNameByWarehouseId($target); ?>
+                            <?php endif ?>
+                        <?php else: ?>
+                            <?php echo $model->getWarehouseNameTo() ?>
+                        <?php endif ?>
+                        <input type="hidden" value="<?php echo $source; ?>" name="warehouse_source">
+                        <input type="hidden" value="<?php echo $target; ?>" name="warehouse_target">
+                    </td>
+                </tr>
+
+                <tr>
+                    <?php if ($this->getRequest()->getParam('id')): ?>
+                        <td class="label"><label style="font-weight: bold;" for="status"><?php echo $this->__('Status') ?>: </label></td>
+                        <td class="value">
+                            <?php
+                            $statusArray = array(
+                                1 => Mage::helper('inventorywarehouse')->__('Completed'),
+                                2 => Mage::helper('inventorywarehouse')->__('Canceled')
+                            );
+                            ?>
+                            <?php echo $statusArray[$model->getStatus()] ?>
+                        </td>
+                    <?php endif; ?>
+                </tr>
+
+                <tr>
+                    <?php if (!$this->getRequest()->getParam('id')): ?>
+                        <td class="label"><label style="font-weight: bold;" for="reason"><?php echo $this->__('Reason(s) for sending stock') ?> <span class="required">*</span></label></td>
+                        <td class="value">
+                            <?php $reasonContent = ''; ?>
+                            <?php if (Mage::getModel('admin/session')->getData('send_stock_reason', null)): ?>
+                                <?php $reasonContent = Mage::getModel('admin/session')->getData('send_stock_reason', null) ?>
+                                <?php Mage::getModel('admin/session')->setData('send_stock_reason', null) ?>
+                            <?php endif ?>
+                            <textarea cols="15" rows="2" class="required-entry required-entry textarea" style="width:274px; height:200px;" title="Reason(s) for sending stock" name="reason" id="reason"><?php echo $reasonContent ?></textarea>
+                        </td>
+                    <?php else: ?>
+                        <td class="label"><label style="font-weight: bold;" for="reason"><?php echo $this->__('Reason(s) for sending stock') ?>:</label></td>
+                        <td class="value">
+                            <?php echo $model->getReason(); ?>
+                        </td>
+                    <?php endif; ?>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<table cellspacing="0" cellpadding="0" border="0" width="650" style="font-family: Arial, Helvetica, sans-serif; border:1px solid #EAEAEA;">
+    <thead>
+    <tr>
+        <th align="left" bgcolor="#EAEAEA" style="font-size:13px; padding:3px 9px"><?php echo $this->__('Product') ?></th>
+        <th align="left" bgcolor="#EAEAEA" style="font-size:13px; padding:3px 9px"><?php echo $this->__('SKU') ?></th>
+        <th align="left" bgcolor="#EAEAEA" style="font-size:13px; padding:3px 9px"><?php echo $this->__('Product Location').'<br/>('.$model->getWarehouseNameFrom().')' ?></th>
+        <th align="left" bgcolor="#EAEAEA" style="font-size:13px; padding:3px 9px"><?php echo $this->__('Product Location').'<br/>('.$model->getWarehouseNameTo().')' ?></th>
+        <th align="center" bgcolor="#EAEAEA" style="font-size:13px; padding:3px 9px"><?php echo $this->__('Qty') ?></th>
+    </tr>
+    </thead>
+    <?php $i = 0;
+    foreach ($items as $item): ?>
+        <tbody<?php echo $i % 2 ? ' bgcolor="#F6F6F6"' : '' ?>>
+        <tr>
+            <td align="left" valign="top" style="font-size:11px; padding:3px 9px; border-bottom:1px dotted #CCCCCC;">
+                <strong style="font-size:11px;"><?php echo $this->htmlEscape($item["product_name"]); ?></strong>
+            </td>
+
+
+            <td align="left" valign="top" style="font-size:11px; padding:3px 9px; border-bottom:1px dotted #CCCCCC;">
+                <?php echo $this->htmlEscape($item["product_sku"]); ?>
+            </td>
+            
+            <td align="left" valign="top" style="font-size:11px; padding:3px 9px; border-bottom:1px dotted #CCCCCC;">
+                <?php $locationFrom = Mage::helper('inventoryplus/warehouse')->getProductLocation($source,$item["product_id"]); ?>
+                <?php if(!$locationFrom): $locationFrom = $this->__('N/A Location'); endif; ?>
+                <?php  echo $locationFrom;?>
+            </td>
+            <td align="left" valign="top" style="font-size:11px; padding:3px 9px; border-bottom:1px dotted #CCCCCC;">
+                <?php $locationTo = Mage::helper('inventoryplus/warehouse')->getProductLocation($target,$item["product_id"]); ?>
+                <?php if(!$locationTo): $locationTo = $this->__('N/A Location'); endif; ?>
+                <?php  echo $locationTo;?>
+            </td>
+            
+            <td align="center" valign="top" style="font-size:11px; padding:3px 9px; border-bottom:1px dotted #CCCCCC;">
+                <?php echo $item["qty"]; ?>
+            </td>
+        </tr>
+        </tbody>
+        <?php $i++; ?>
+    <?php endforeach; ?>
+</table>

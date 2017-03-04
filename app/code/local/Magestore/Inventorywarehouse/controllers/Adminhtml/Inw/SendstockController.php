@@ -30,7 +30,273 @@
 class Magestore_Inventorywarehouse_Adminhtml_Inw_SendstockController 
     extends Magestore_Inventoryplus_Controller_Action 
     implements Magestore_Inventoryplus_Controller_Scan {
-    
+
+    public function productsdeliveryAction()
+    {
+        $this->loadLayout();
+        $this->renderLayout();
+//        $this->renderLayout();
+//        if (Mage::getModel('admin/session')->getData('requeststock_product_import'))
+//            Mage::getModel('admin/session')->setData('requeststock_product_import', null);
+    }
+
+    public function newDeliveryAction()
+    {
+        $sendstock_id = $this->getRequest()->getParam('sendstock_id');
+//        $purchaseOrderId = 2;
+        $model = Mage::getModel('inventorywarehouse/sendstock')->load($sendstock_id);
+        $this->_title($this->__('Inventory'))
+            ->_title($this->__('Add New Delivery'));
+        if ($model->getId() || $sendstock_id == 0) {
+            $data = Mage::getSingleton('adminhtml/session')->getFormData(true);
+            if (!empty($data)) {
+                $model->setData($data);
+            }
+            Mage::register('sendstock_data', $model);
+
+            $this->loadLayout()->_setActiveMenu($this->_menu_path);
+
+            $this->getLayout()->getBlock('head')->setCanLoadExtJs(true);
+            $this->_addContent($this->getLayout()->createBlock('inventorywarehouse/adminhtml_sendstock_editdelivery'))
+                ->_addLeft($this->getLayout()->createBlock('inventorywarehouse/adminhtml_sendstock_editdelivery_tabs'));
+            $this->renderLayout();
+
+//            if (Mage::getModel('admin/session')->getData('delivery_purchaseorder_product_import')) {
+//                Mage::getModel('admin/session')->setData('delivery_purchaseorder_product_import', null);
+//            }
+        } else {
+            Mage::getSingleton('adminhtml/session')->addError(
+                Mage::helper('inventorywarehouse')->__('Item does not exist')
+            );
+            $this->_redirect('*/*/');
+        }
+    }
+
+    public function prepareDeliveryAction()
+    {
+        $this->_title($this->__('Inventory'))
+            ->_title($this->__('Add New Delivery'));
+        $this->loadLayout();
+        $this->getLayout()->getBlock('inventorywarehouse.sendstock.edit.tab.preparedelivery')
+            ->setProducts($this->getRequest()->getPost('in_products', null));
+
+        $this->getLayout()->getBlock('grid_serializer')->addColumnInputName('qty_delivery');
+        $this->renderLayout();
+    }
+
+    public function saveDeliveryAction()
+    {
+        if ($data = $this->getRequest()->getPost()) {
+            $sendstock_id = Mage::app()->getRequest()->getParam('id');
+            $sendstock = Mage::getModel('inventorywarehouse/sendstock')->load($sendstock_id);
+            if ($sendstock->getData('warehouse_id_from') != 0)
+                $warehourseSource = Mage::getModel('inventoryplus/warehouse')->load($sendstock->getData('warehouse_id_from'));
+                $warehourseTarget = Mage::getModel('inventoryplus/warehouse')->load($sendstock->getData('warehouse_id_to'));
+
+            $admin = Mage::getModel('admin/session')->getUser()->getUsername();
+            $now = now();
+
+            //create send transaction data
+            $transactionSendModel = Mage::getModel('inventorywarehouse/transaction');
+            $transactionSendData = array();
+            if ($sendstock->getData('warehouse_id_from') != 0) {
+                $transactionSendData['type'] = '1';
+            } else {
+                $transactionSendData['type'] = '7';
+            }
+
+            $transactionSendData['warehouse_id_from'] = $transactionSendData['warehouse_name_from'] = $transactionSendData['warehouse_id_to'] = $transactionSendData['warehouse_name_to'] = '';
+            $transactionSendData['warehouse_id_from'] = $sendstock->getData('warehouse_id_from');
+            $transactionSendData['warehouse_name_from'] = $sendstock->getData('warehouse_name_from');
+            $transactionSendData['warehouse_id_to'] = $sendstock->getData('warehouse_id_to');
+            $transactionSendData['warehouse_name_to'] = $sendstock->getData('warehouse_name_to');
+            $transactionSendData['created_at'] = $now;
+            $transactionSendData['created_by'] = $admin;
+            $transactionSendData['reason'] = $sendstock->getData('reason');
+            $transactionSendModel->addData($transactionSendData);
+
+            //create receive transaction data
+            $transactionReceiveData['warehouse_id_from'] = $transactionReceiveData['warehouse_name_from'] = $transactionReceiveData['warehouse_id_to'] = $transactionReceiveData['warehouse_name_to'] = '';
+            $transactionReceiveModel = Mage::getModel('inventorywarehouse/transaction');
+            $transactionReceiveData = array();
+            if ($sendstock->getData('warehouse_id_from') != 0) {
+                $transactionReceiveData['type'] = '2';
+            } else {
+                $transactionReceiveData['type'] = '8';
+            }
+//
+            $transactionReceiveData['warehouse_id_from'] = $sendstock->getData('warehouse_id_from');
+            $transactionReceiveData['warehouse_name_from'] = $sendstock->getData('warehouse_name_from');
+            $transactionReceiveData['warehouse_id_to'] = $sendstock->getData('warehouse_id_to');
+            $transactionReceiveData['warehouse_name_to'] = $sendstock->getData('warehouse_name_to');
+            $transactionReceiveData['created_at'] = $now;
+            $transactionReceiveData['created_by'] = $admin;
+            $transactionReceiveData['reason'] = $sendstock->getData('reason');
+            $transactionReceiveModel->addData($transactionReceiveData);
+            $transactionSendModel->save();
+            $transactionReceiveModel->save();
+            //save product
+            if (isset($data['product_delivery'])) {
+                $sendstockProducts = array();
+                Mage::helper('inventoryplus')->parseStr(urldecode($data['product_delivery']), $sendstockProducts);
+                $total = array();
+                $notReceive = array();
+                $source = $target = '';
+                $source = $sendstock->getData('warehouse_id_from');
+                $target = $sendstock->getData('warehouse_id_to');
+                if (!empty($sendstockProducts)) {
+                    foreach ($sendstockProducts as $pId => $enCoded) {
+                        $codeArr = array();
+                        $qty = 0;
+                        $product = Mage::getModel('catalog/product')->load($pId);
+                        Mage::helper('inventoryplus')->parseStr(Mage::helper('inventoryplus')->base64Decode($enCoded), $codeArr);
+//
+                        /*save in sendstock product*/
+//                        echo $product->getName() . '<br/>';
+//                        echo $product->getSku() . '<br/>';
+                        $sendstockProductsItem = Mage::getModel('inventorywarehouse/sendstock_product')
+                            ->getCollection()
+                            ->addFieldToFilter('warehouse_sendstock_id', $sendstock->getId())
+                            ->addFieldToFilter('product_id', $pId)
+                            ->setPageSize(1)
+                            ->setCurPage(1)
+                            ->getFirstItem();
+                        $qty_delivery = $codeArr['qty_delivery'];
+                        $qty_send = abs($sendstockProductsItem->getQty());
+                        $total_delivery = abs($sendstockProductsItem->getTotalDelivery());
+
+//                        die();
+                        if ($qty_send >= ($total_delivery + $qty_delivery)) {
+                            $qty = $qty_delivery;
+                        } else {
+                            $qty = $qty_send - $total_delivery;
+                        }
+//                        echo '$qty_delivery: ' . $qty_delivery . '<br/>';
+//                        echo '$qty_send: ' . $qty_send . '<br/>';
+//                        echo '$total_qty: ' . $total_delivery . '<br/>';
+                        if ($source) {
+                            $warehouse = Mage::getModel('inventoryplus/warehouse_product')
+                                ->getCollection()
+                                ->addFieldToFilter('warehouse_id', $source)
+                                ->addFieldToFilter('product_id', $pId)
+                                ->getFirstItem();
+
+                            /** if source warhouse has not this product */
+                            if (!$warehouse->getId())
+                                continue;
+                            if ((int)$qty > (int)$warehouse->getTotalQty())
+                                $qty = (int)$warehouse->getTotalQty();
+                        }
+//                        echo '$qty:' . $qty . '<br/>';
+//                        echo '$qty_delivery: ' . $qty_delivery . '<br/>';
+//                        echo '$qty_send: ' . $qty_send . '<br/>';
+//                        echo '$total_qty: ' . $total_delivery . '<br/>';
+//                        die();
+                        $sendstockProductsItem->setTotalDelivery($total_delivery + $qty)->save();
+                        $sendstockDelivery = Mage::getModel('inventorywarehouse/sendstockdelivery');
+                        $sendstockDelivery->setWarehouseSendstockId($sendstock_id)
+                            ->setTime($now)
+                            ->setProductId($pId)
+                            ->setProductName($product->getName())
+                            ->setProductSku($product->getSku())
+                            ->setQtyDelivery($qty)
+                            ->setCreatedBy($admin)
+                            ->save();
+
+                        array_push($total, (int)$qty);
+
+                        $warehouseProductTarget = Mage::getModel('inventoryplus/warehouse_product')
+                            ->getCollection()
+                            ->addFieldToFilter('warehouse_id', $target)
+                            ->addFieldToFilter('product_id', $pId)
+                            ->setPageSize(1)
+                            ->setCurPage(1)
+                            ->getFirstItem();
+                        if ($warehouseProductTarget && $warehouseProductTarget->getId()) {
+                            $qtyTarget = $warehouseProductTarget->getTotalQty() + $qty;
+                            $qtyAvailableTarget = $warehouseProductTarget->getAvailableQty() + $qty;
+                            $warehouseProductTarget->setTotalQty($qtyTarget)
+                                ->setAvailableQty($qtyAvailableTarget)
+                                ->save();
+                        } else {
+                            /*save warehouse target*/
+                            Mage::getModel('inventoryplus/warehouse_product')
+                                ->setWarehouseId($target)
+                                ->setProductId($pId)
+                                ->setTotalQty($qty)
+                                ->setAvailableQty($qty)
+                                ->save();
+                        }
+//
+//                                    /*save warehouse source*/
+                        $currentQty = (int)$warehouse->getTotalQty() - $qty;
+                        $currentQtyAvailable = (int)$warehouse->getAvailableQty() - $qty;
+                        $warehouse->setTotalQty($currentQty);
+                        $warehouse->setAvailableQty($currentQtyAvailable);
+                        $warehouse->save();
+//
+                        //save products to transaction product table for send transaction
+                        Mage::getModel('inventorywarehouse/transaction_product')
+                            ->setWarehouseTransactionId($transactionSendModel->getId())
+                            ->setProductId($pId)
+                            ->setProductSku($product->getSku())
+                            ->setProductName($product->getName())
+                            ->setQty(-$qty)
+                            ->save();
+                        //save products to transaction product table for receive transaction
+                        Mage::getModel('inventorywarehouse/transaction_product')
+                            ->setWarehouseTransactionId($transactionReceiveModel->getId())
+                            ->setProductId($pId)
+                            ->setProductSku($product->getSku())
+                            ->setProductName($product->getName())
+                            ->setQty($qty)
+                            ->save();
+
+
+                    }
+
+                    $totalProducts = array_sum($total);
+                    $transactionSendModel->setTotalProducts(-$totalProducts);
+                    $transactionSendModel->save();
+                    $transactionReceiveModel->setTotalProducts($totalProducts);
+                    $transactionReceiveModel->save();
+
+                    $sendstockProducts = Mage::getModel('inventorywarehouse/sendstock_product')->getCollection()
+                        ->addFieldToFilter('warehouse_sendstock_id', $sendstock_id);
+                    $complete = true;
+                    $processing = false;
+                    Zend_Debug::dump($sendstockProducts->getData());
+                    $total_delivery = 0;
+                    foreach ($sendstockProducts as $sendstockProduct){
+                        if(abs($sendstockProduct->getQty()) != abs($sendstockProduct->getTotalDelivery()))
+                            $complete = false;
+                        if($sendstockProduct->getTotalDelivery() != 0)
+                            $processing = true;
+                    }
+
+                    if($processing)
+                        $sendstock->setStatus(4)->save();
+                    if ($complete)
+                        $sendstock->setStatus(1)->save();
+                    Mage::getSingleton('adminhtml/session')->addSuccess(
+                        Mage::helper('inventorywarehouse')->__('Delivery stock send was successfully created.')
+                    );
+
+                    $this->_redirect('adminhtml/inw_sendstock/edit', array('id' => $sendstock_id));
+                    return;
+                }
+                Mage::getSingleton('adminhtml/session')->addError(
+                    Mage::helper('inventorywarehouse')->__('Unable to save')
+                );
+                $this->_redirect('*/*/');
+            } else {
+                Mage::getSingleton('adminhtml/session')->addError(
+                    Mage::helper('inventorywarehouse')->__('Unable to save')
+                );
+                $this->_redirect('*/*/');
+            }
+        }
+    }
     /**
      * Menu Path
      * 
@@ -119,7 +385,202 @@ class Magestore_Inventorywarehouse_Adminhtml_Inw_SendstockController
         $this->loadLayout();
         $this->renderLayout();
     }
+    public function createalldeliveryAction(){
+        if ($sendstock_id = Mage::app()->getRequest()->getParam('sendstock_id')) {
+            $sendstock_id = Mage::app()->getRequest()->getParam('sendstock_id');
+            $sendstock = Mage::getModel('inventorywarehouse/sendstock')->load($sendstock_id);
+            if ($sendstock->getData('warehouse_id_from') != 0)
+                $warehourseSource = Mage::getModel('inventoryplus/warehouse')->load($sendstock->getData('warehouse_id_from'));
+            $warehourseTarget = Mage::getModel('inventoryplus/warehouse')->load($sendstock->getData('warehouse_id_to'));
 
+            $admin = Mage::getModel('admin/session')->getUser()->getUsername();
+            $now = now();
+
+            //create send transaction data
+            $transactionSendModel = Mage::getModel('inventorywarehouse/transaction');
+            $transactionSendData = array();
+            if ($sendstock->getData('warehouse_id_from') != 0) {
+                $transactionSendData['type'] = '1';
+            } else {
+                $transactionSendData['type'] = '7';
+            }
+
+            $transactionSendData['warehouse_id_from'] = $transactionSendData['warehouse_name_from'] = $transactionSendData['warehouse_id_to'] = $transactionSendData['warehouse_name_to'] = '';
+            $transactionSendData['warehouse_id_from'] = $sendstock->getData('warehouse_id_from');
+            $transactionSendData['warehouse_name_from'] = $sendstock->getData('warehouse_name_from');
+            $transactionSendData['warehouse_id_to'] = $sendstock->getData('warehouse_id_to');
+            $transactionSendData['warehouse_name_to'] = $sendstock->getData('warehouse_name_to');
+            $transactionSendData['created_at'] = $now;
+            $transactionSendData['created_by'] = $admin;
+            $transactionSendData['reason'] = $sendstock->getData('reason');
+            $transactionSendModel->addData($transactionSendData);
+
+            //create receive transaction data
+            $transactionReceiveData['warehouse_id_from'] = $transactionReceiveData['warehouse_name_from'] = $transactionReceiveData['warehouse_id_to'] = $transactionReceiveData['warehouse_name_to'] = '';
+            $transactionReceiveModel = Mage::getModel('inventorywarehouse/transaction');
+            $transactionReceiveData = array();
+            if ($sendstock->getData('warehouse_id_from') != 0) {
+                $transactionReceiveData['type'] = '2';
+            } else {
+                $transactionReceiveData['type'] = '8';
+            }
+//
+            $transactionReceiveData['warehouse_id_from'] = $sendstock->getData('warehouse_id_from');
+            $transactionReceiveData['warehouse_name_from'] = $sendstock->getData('warehouse_name_from');
+            $transactionReceiveData['warehouse_id_to'] = $sendstock->getData('warehouse_id_to');
+            $transactionReceiveData['warehouse_name_to'] = $sendstock->getData('warehouse_name_to');
+            $transactionReceiveData['created_at'] = $now;
+            $transactionReceiveData['created_by'] = $admin;
+            $transactionReceiveData['reason'] = $sendstock->getData('reason');
+            $transactionReceiveModel->addData($transactionReceiveData);
+            $transactionSendModel->save();
+            $transactionReceiveModel->save();
+            //save product
+            $sendstockProducts = Mage::getModel('inventorywarehouse/sendstock_product')->getCollection()
+                ->addFieldToFilter('warehouse_sendstock_id', $sendstock_id);
+            $total = array();
+            $notReceive = array();
+            $source = $target = '';
+            $source = $sendstock->getData('warehouse_id_from');
+            $target = $sendstock->getData('warehouse_id_to');
+            Zend_Debug::dump($sendstock->getData());
+            foreach ($sendstockProducts as $sendstockProduct){
+                $qty_send = abs($sendstockProduct->getQty());
+                $qty_delivery = abs($sendstockProduct->getTotalDelivery());
+                if($qty_delivery == $qty_send)
+                    continue;
+                $pId = $sendstockProduct->getProductId();
+                $product = Mage::getModel('catalog/product')->load($pId);
+
+                /*save in rsendstock product*/
+                $sendstockProductsItem = Mage::getModel('inventorywarehouse/sendstock_product')
+                    ->getCollection()
+                    ->addFieldToFilter('warehouse_sendstock_id', $sendstock->getId())
+                    ->addFieldToFilter('product_id', $pId)
+                    ->setPageSize(1)
+                    ->setCurPage(1)
+                    ->getFirstItem();
+                $qty_delivery = $qty_send - $qty_delivery;
+                $qty_send = abs($sendstockProductsItem->getQty());
+                $total_delivery = abs($sendstockProductsItem->getTotalDelivery());
+                if ($qty_send >= ($total_delivery + $qty_delivery)) {
+                    $qty = $qty_delivery;
+                } else {
+                    $qty = $qty_send - $total_delivery;
+                }
+
+                if ($source) {
+                    $warehouse = Mage::getModel('inventoryplus/warehouse_product')
+                        ->getCollection()
+                        ->addFieldToFilter('warehouse_id', $source)
+                        ->addFieldToFilter('product_id', $pId)
+                        ->getFirstItem();
+
+                    /** if source warhouse has not this product */
+                    if (!$warehouse->getId())
+                        continue;
+                    if ((int)$qty > (int)$warehouse->getTotalQty())
+                        $qty = (int)$warehouse->getTotalQty();
+                }
+                echo '$qty:' . $qty . '<br/>';
+                $sendstockDelivery = Mage::getModel('inventorywarehouse/sendstockdelivery');
+                $sendstockDelivery->setWarehouseSendstockId($sendstock_id)
+                    ->setTime($now)
+                    ->setProductId($pId)
+                    ->setProductName($product->getName())
+                    ->setProductSku($product->getSku())
+                    ->setQtyDelivery($qty)
+                    ->setCreatedBy($admin)
+                    ->save();
+                $sendstockProductsItem->setTotalDelivery($total_delivery + $qty)->save();
+                array_push($total, (int)$qty);
+
+                $warehouseProductTarget = Mage::getModel('inventoryplus/warehouse_product')
+                    ->getCollection()
+                    ->addFieldToFilter('warehouse_id', $target)
+                    ->addFieldToFilter('product_id', $pId)
+                    ->setPageSize(1)
+                    ->setCurPage(1)
+                    ->getFirstItem();
+                Zend_Debug::dump($warehouseProductTarget->getData());
+//                die();
+                if ($warehouseProductTarget && $warehouseProductTarget->getId()) {
+                    $qtyTarget = $warehouseProductTarget->getTotalQty() + $qty;
+                    $qtyAvailableTarget = $warehouseProductTarget->getAvailableQty() + $qty;
+                    $warehouseProductTarget->setTotalQty($qtyTarget)
+                        ->setAvailableQty($qtyAvailableTarget)
+                        ->save();
+                } else {
+                    /*save warehouse target*/
+                    Mage::getModel('inventoryplus/warehouse_product')
+                        ->setWarehouseId($target)
+                        ->setProductId($pId)
+                        ->setTotalQty($qty)
+                        ->setAvailableQty($qty)
+                        ->save();
+                }
+//
+//                                    /*save warehouse source*/
+                $currentQty = (int)$warehouse->getTotalQty() - $qty;
+                $currentQtyAvailable = (int)$warehouse->getAvailableQty() - $qty;
+                $warehouse->setTotalQty($currentQty);
+                $warehouse->setAvailableQty($currentQtyAvailable);
+                $warehouse->save();
+//
+                //save products to transaction product table for send transaction
+                Mage::getModel('inventorywarehouse/transaction_product')
+                    ->setWarehouseTransactionId($transactionSendModel->getId())
+                    ->setProductId($pId)
+                    ->setProductSku($product->getSku())
+                    ->setProductName($product->getName())
+                    ->setQty(-$qty)
+                    ->save();
+                //save products to transaction product table for receive transaction
+                Mage::getModel('inventorywarehouse/transaction_product')
+                    ->setWarehouseTransactionId($transactionReceiveModel->getId())
+                    ->setProductId($pId)
+                    ->setProductSku($product->getSku())
+                    ->setProductName($product->getName())
+                    ->setQty($qty)
+                    ->save();
+            }
+
+            $totalProducts = array_sum($total);
+            $transactionSendModel->setTotalProducts(-$totalProducts);
+            $transactionSendModel->save();
+            $transactionReceiveModel->setTotalProducts($totalProducts);
+            $transactionReceiveModel->save();
+
+
+            $sendstockProducts = Mage::getModel('inventorywarehouse/sendstock_product')->getCollection()
+                ->addFieldToFilter('warehouse_sendstock_id', $sendstock_id);
+            $complete = true;
+            $processing = false;
+            foreach ($sendstockProducts as $sendstockProduct){
+                if(abs($sendstockProduct->getQty()) != abs($sendstockProduct->getTotalDelivery()))
+                    $complete = false;
+                if($sendstockProduct->getTotalDelivery() != 0)
+                    $processing = true;
+            }
+
+            if($processing)
+                $sendstock->setStatus(4)->save();
+            if ($complete)
+                $sendstock->setStatus(1)->save();
+            Mage::getSingleton('adminhtml/session')->addSuccess(
+                Mage::helper('inventorywarehouse')->__('Delivery stock request was successfully created.')
+            );
+
+            $this->_redirect('adminhtml/inw_sendstock/edit', array('id' => $sendstock_id));
+            return;
+
+        }else{
+            Mage::getSingleton('adminhtml/session')->addError(
+                Mage::helper('inventorywarehouse')->__('Unable to save')
+            );
+            $this->_redirect('*/*/');
+        }
+    }
     public function saveAction() {
         $data = $this->getRequest()->getPost();
         if ($data) {
@@ -150,7 +611,7 @@ class Magestore_Inventorywarehouse_Adminhtml_Inw_SendstockController
             } else {
                 $data['created_by'] = $admin;
             }
-            $data['status'] = 1;
+            $data['status'] = 3;
             $model->addData($data);
 
             //create send transaction data
@@ -248,8 +709,8 @@ class Magestore_Inventorywarehouse_Adminhtml_Inw_SendstockController
                             $new_send_warehouse_qty = $send_warehouse_products->getTotalQty() - $qty;
                             $new_send_warehouse_qty_available = $send_warehouse_products->getAvailableQty() - $qty;
                             $send_warehouse_products->setTotalQty($new_send_warehouse_qty)
-                                    ->setAvailableQty($new_send_warehouse_qty_available)
-                                    ->save();
+                                    ->setAvailableQty($new_send_warehouse_qty_available);
+//                                    ->save();
                             //Recalculate products for receiving warehouse
                             if ($data['warehouse_id_to'] != '') {
                                 $receive_warehouse_products = Mage::getModel('inventoryplus/warehouse_product')
@@ -264,15 +725,15 @@ class Magestore_Inventorywarehouse_Adminhtml_Inw_SendstockController
                                     $new_receive_warehouse_qty_available = $receive_warehouse_products->getAvailableQty() + $qty;
                                     $receive_warehouse_products
                                             ->setTotalQty($new_receive_warehouse_qty)
-                                            ->setAvailableQty($new_receive_warehouse_qty_available)
-                                            ->save();
+                                            ->setAvailableQty($new_receive_warehouse_qty_available);
+//                                            ->save();
                                 } else {
                                     Mage::getModel('inventoryplus/warehouse_product')
                                             ->setWarehouseId($data['warehouse_id_to'])
                                             ->setProductId($pId)
                                             ->setTotalQty($qty)
-                                            ->setAvailableQty($qty)
-                                            ->save();
+                                            ->setAvailableQty($qty);
+//                                            ->save();
                                 }
                             } else {
                                 $stock_item = Mage::getModel('cataloginventory/stock_item')
@@ -283,7 +744,8 @@ class Magestore_Inventorywarehouse_Adminhtml_Inw_SendstockController
                                         ->getFirstItem();
                                 $stock_item_qty = $stock_item->getQty();
                                 $new_stock_qty = $stock_item_qty - $qty;
-                                $stock_item->setQty($new_stock_qty)->save();
+//                                $stock_item->setQty($new_stock_qty)->save();
+                                $stock_item->setQty($new_stock_qty);
                             }
                         }
                     }

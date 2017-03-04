@@ -49,9 +49,44 @@
     </adminhtml_inw_sendstock_new>
     
     <adminhtml_inw_sendstock_edit>
-        <update handle="adminhtml_inventoryplus_one_tab" />
+        <!--<update handle="adminhtml_inventoryplus_one_tab" />-->
+        <update handle="adminhtml_inventoryplus_layout" />
     </adminhtml_inw_sendstock_edit>
-    
+    <adminhtml_inw_sendstock_productsdelivery>
+        <block type="core/text_list" name="root">
+            <block type="inventorywarehouse/adminhtml_sendstock_edit_tab_productsdelivery" name="sendstock.edit.tab.productsdelivery"/>
+            <!--<action method="initSerializerBlock">-->
+            <!--<grid_block_name>requeststock.edit.tab.products</grid_block_name>-->
+            <!--<data_callback>getSelectedProducts</data_callback>-->
+            <!--<hidden_input_name>requeststock_products</hidden_input_name>-->
+            <!--<reload_param_name>requeststock_products</reload_param_name>-->
+            <!--</action>-->
+            <!--<action method="addColumnInputName">-->
+            <!--<input_name>qty_request</input_name>-->
+            <!--</action>-->
+            <!--</block>-->
+        </block>
+    </adminhtml_inw_sendstock_productsdelivery>
+    <adminhtml_inw_sendstock_newdelivery>
+        <update handle="adminhtml_inventoryplus_one_tab"/>
+    </adminhtml_inw_sendstock_newdelivery>
+
+    <adminhtml_inw_sendstock_preparedelivery>
+        <block type="core/text_list" name="root">
+            <block type="inventorywarehouse/adminhtml_sendstock_editdelivery_tab_delivery" name="inventorywarehouse.sendstock.edit.tab.preparedelivery"/>
+            <block type="adminhtml/widget_grid_serializer" name="grid_serializer">
+                <action method="initSerializerBlock">
+                    <grid_block_name>inventorywarehouse.sendstock.edit.tab.preparedelivery</grid_block_name>
+                    <data_callback>getSelectedProducts</data_callback>
+                    <hidden_input_name>product_delivery</hidden_input_name>
+                    <reload_param_name>in_products</reload_param_name>
+                </action>
+                <action method="addColumnInputName">
+                    <input_name>qty_delivery</input_name>
+                </action>
+            </block>
+        </block>
+    </adminhtml_inw_sendstock_preparedelivery>
     <adminhtml_inw_sendstock_products>
         <block type="core/text_list" name="root">
             <block type="inventorywarehouse/adminhtml_sendstock" name="csv_form" template="inventorywarehouse/sendstock/importproduct.phtml" />
@@ -137,6 +172,8 @@
             <!--</block>-->
         </block>
     </adminhtml_inw_requeststock_productsdelivery>
+
+
     <adminhtml_inw_requeststock_newdelivery>
         <update handle="adminhtml_inventoryplus_one_tab"/>
         <!--<reference name="content">-->

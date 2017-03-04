@@ -65,8 +65,9 @@ class Magestore_Inventorywarehouse_Block_Adminhtml_Sendstock_Edit_Tab_Products
             $collection->addFieldToFilter('warehouse_qty', array('gt' => 0));
         } else {
             $collection->joinField('qty', 'inventorywarehouse/sendstock_product', 'qty', 'product_id=entity_id', "{{table}}.warehouse_sendstock_id = $id", 'inner');
+            $collection->joinField('total_delivery', 'inventorywarehouse/sendstock_product', 'total_delivery', 'product_id=entity_id', "{{table}}.warehouse_sendstock_id=$id", 'inner');
         }
-        
+
         /* add scanned result to colelction */
 		if(Mage::helper('core')->isModuleEnabled('Magestore_Inventorybarcode')){
             $currentAdminId = Mage::getSingleton('admin/session')->getUser()->getUserId();
@@ -153,6 +154,13 @@ class Magestore_Inventorywarehouse_Block_Adminhtml_Sendstock_Edit_Tab_Products
                 'index' => 'qty',
                 'editable' => false,
                 'type' => 'number',
+            ));
+            $this->addColumn('total_delivery', array(
+                'header' => Mage::helper('catalog')->__('Total delivery'),
+                'width' => '80px',
+                'index' => 'total_delivery',
+                'type' => 'number',
+                'editable' => $editable
             ));
         } else {
             $this->addColumn('qty', array(

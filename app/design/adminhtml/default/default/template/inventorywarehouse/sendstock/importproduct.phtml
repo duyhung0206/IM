@@ -78,7 +78,9 @@ if ($id) {
                 <?php
                 $statusArray = array(
                     1 => Mage::helper('inventorywarehouse')->__('Complete'),
-                    2 => Mage::helper('inventorywarehouse')->__('Canceled')
+                    2 => Mage::helper('inventorywarehouse')->__('Canceled'),
+                    3 => Mage::helper('inventorywarehouse')->__('Pending'),
+                    4 => Mage::helper('inventorywarehouse')->__('Processing'),
                 );
                 ?>
                 <?php $status = $sendStock->getStatus() ?>

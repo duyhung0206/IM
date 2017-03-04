@@ -79,7 +79,8 @@
                                 <?php
                                 $statusArray = array(
                                     1 => Mage::helper('inventorywarehouse')->__('Completed'),
-                                    2 => Mage::helper('inventorywarehouse')->__('Canceled')
+                                    2 => Mage::helper('inventorywarehouse')->__('Canceled'),
+
                                 );
                                 ?>
                                 <?php echo $statusArray[$model->getStatus()] ?>
